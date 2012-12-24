@@ -1,4 +1,4 @@
-package com.benzrf.sblock.sburbalchemy;
+package com.benzrf.sblock.sburbmachines;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,16 +14,16 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.benzrf.sblock.sburbalchemy.machines.Cruxtruder;
-import com.benzrf.sblock.sburbalchemy.machines.Machine;
+import com.benzrf.sblock.sburbmachines.machines.Cruxtruder;
+import com.benzrf.sblock.sburbmachines.machines.Machine;
 
-public class SburbAlchemy extends JavaPlugin implements Listener
+public class SburbMachines extends JavaPlugin implements Listener
 {
 	@Override
 	public void onEnable()
 	{
 		this.getServer().getPluginManager().registerEvents(this, this);
-		SburbAlchemy.instance = this;
+		SburbMachines.instance = this;
 	}
 	
 	@Override
@@ -80,5 +80,5 @@ public class SburbAlchemy extends JavaPlugin implements Listener
 	}
 	
 	private Map<Location, Machine> machines = new HashMap<Location, Machine>();
-	public static SburbAlchemy instance;
+	public static SburbMachines instance;
 }
