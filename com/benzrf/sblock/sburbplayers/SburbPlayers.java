@@ -1,22 +1,23 @@
 package com.benzrf.sblock.sburbplayers;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_4_6.entity.CraftPlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_4_6.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,6 +33,7 @@ import com.benzrf.sblock.sburbplayers.commandparser.ArgumentType;
 import com.benzrf.sblock.sburbplayers.commandparser.CommandNode;
 import com.benzrf.sblock.sburbplayers.commandparser.CommandParser;
 import com.benzrf.sblock.sburbplayers.commandparser.ExecutableCommandNode;
+import com.google.gson.Gson;
 
 public class SburbPlayers extends JavaPlugin implements Listener
 {
@@ -107,9 +109,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			if (new File("plugins/SburbPlayers/u_" + p.getName() + ".spd").exists())
 			{
-				ObjectInputStream i = new ObjectInputStream(new FileInputStream(new File("plugins/SburbPlayers/u_" + p.getName() + ".spd")));
-				SburbPlayer sp = (SburbPlayer) i.readObject();
-				i.close();
+				SburbPlayer sp = this.gson.fromJson(this.readFile("plugins/SburbPlayers/u_" + p.getName() + ".spd"), SburbPlayer.class);
 				sp.player = p;
 				this.players.put(p.getName(), sp);
 			}
@@ -118,6 +118,23 @@ public class SburbPlayers extends JavaPlugin implements Listener
 				this.players.put(p.getName(), new SburbPlayer(p, SClass.Heir, Aspect.Breath, MPlanet.LOWAS, CPlanet.Prospit, Integer.toString(new Random().nextInt(5))));
 			}
 		}
+	}
+	
+	private String readFile(String path) throws IOException
+	{
+		String file;
+		FileInputStream stream = new FileInputStream(new File(path));
+		try
+		{
+			FileChannel fc = stream.getChannel();
+			MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+			file = Charset.defaultCharset().decode(bb).toString();
+		}
+		finally
+		{
+			stream.close();
+		}
+		return file;
 	}
 
 	@EventHandler
@@ -129,10 +146,10 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	{
 		if (this.players.containsKey(p.getName()))
 		{
-			ObjectOutputStream o = new ObjectOutputStream(new FileOutputStream(new File("plugins/SburbPlayers/u_" + p.getName() + ".spd")));
-			o.writeObject(this.players.get(p.getName()));
-			o.flush();
-			o.close();
+			BufferedWriter w = new BufferedWriter(new FileWriter("plugins/SburbPlayers/u_" + p.getName() + ".spd"));
+			w.write(this.gson.toJson(this.players.get(p.getName())));
+			w.flush();
+			w.close();
 			this.players.remove(p.getName());
 		}
 	}
@@ -304,4 +321,5 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	public Map<String, String> tpacks = new HashMap<String, String>();
 	private CommandNode root;
 	private String prefix = ChatColor.WHITE + "[" + ChatColor.GREEN + "Sburb" + ChatColor.RED + "Players" + ChatColor.WHITE + "] ";
+	private Gson gson = new Gson();
 }

@@ -150,7 +150,7 @@ public class ChannelManager
 	@SuppressWarnings("unchecked")
 	public void readChannels(String path, String list) throws IOException, ClassNotFoundException
 	{
-		HashMap<String, String> cm = this.gson.fromJson(this.readFile(path), HashMap.class);
+		HashMap<String, String> cm = this.gson.fromJson(this.readFile(path + list), HashMap.class);
 		for (String c : cm.keySet())
 		{
 			this.registerChannel((Channel) this.gson.fromJson(this.readFile(path + "c_" + c + ".scd"), ChannelType.valueOf(cm.get(c)).getType()));
