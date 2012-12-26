@@ -5,10 +5,11 @@ import org.bukkit.ChatColor;
 import com.benzrf.sblock.sburbchat.SburbChat;
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
+import com.benzrf.sblock.sburbchat.channel.ChannelType;
 
 public class TmpChannel extends NormalChannel
 {
-
+	public TmpChannel(){}
 	public TmpChannel(String name, AccessLevel listeningAccess, AccessLevel sendingAccess, String creator)
 	{
 		super(name, listeningAccess, sendingAccess, creator);
@@ -23,6 +24,12 @@ public class TmpChannel extends NormalChannel
 			sender.sendMessageFromChannel(ChatColor.AQUA + "Channel " + ChatColor.GOLD + this.name + ChatColor.AQUA + " has been disbanded.", this);
 			SburbChat.getInstance().getChannelManager().disbandChannel(this.name);
 		}
+	}
+	
+	@Override
+	public ChannelType getType()
+	{
+		return ChannelType.TMP;
 	}
 	
 	private static final long serialVersionUID = 3909818601954361239L;

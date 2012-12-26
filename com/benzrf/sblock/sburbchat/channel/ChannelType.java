@@ -29,5 +29,10 @@ public enum ChannelType
 		return null;
 	}
 	
+	public Class<?> getType()
+	{
+		return channelType;
+	}
+	
 	private Class channelType;
 }

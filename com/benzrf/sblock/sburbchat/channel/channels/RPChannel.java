@@ -8,9 +8,11 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
+import com.benzrf.sblock.sburbchat.channel.ChannelType;
 
 public class RPChannel extends NickChannel
 {
+	public RPChannel(){}
 	public RPChannel(String name, AccessLevel listeningAccess, AccessLevel sendingAccess, String creator)
 	{
 		super(name, listeningAccess, sendingAccess, creator);
@@ -78,6 +80,12 @@ public class RPChannel extends NickChannel
 			}
 		}
 		sender.sendMessage(ChatColor.RED + "The nick " + ChatColor.DARK_BLUE + nick + ChatColor.RED + " is not canon!");
+	}
+	
+	@Override
+	public ChannelType getType()
+	{
+		return ChannelType.RP;
 	}
 	
 	static Map<String, Quirker> canonNicks = new HashMap<String, Quirker>();

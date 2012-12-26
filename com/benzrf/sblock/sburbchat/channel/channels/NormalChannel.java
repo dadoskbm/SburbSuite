@@ -12,9 +12,11 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import com.benzrf.sblock.sburbchat.SburbChat;
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
+import com.benzrf.sblock.sburbchat.channel.ChannelType;
 
 public class NormalChannel implements Channel, Serializable
 {
+	public NormalChannel(){}
 	public NormalChannel(String name, AccessLevel listeningAccess, AccessLevel sendingAccess, String creator)
 	{
 		this.name = name;
@@ -441,6 +443,12 @@ public class NormalChannel implements Channel, Serializable
 		in.defaultReadObject();
 		this.listening = new HashSet<User>();
 		SburbChat.getInstance().getChannelManager().registerChannel(this);
+	}
+	
+	@Override
+	public ChannelType getType()
+	{
+		return ChannelType.NORMAL;
 	}
 	
 	protected String name;

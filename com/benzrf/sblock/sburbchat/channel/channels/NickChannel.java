@@ -6,9 +6,11 @@ import org.bukkit.ChatColor;
 
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
+import com.benzrf.sblock.sburbchat.channel.ChannelType;
 
 public class NickChannel extends NormalChannel
 {
+	public NickChannel(){}
 	public NickChannel(String name, AccessLevel listeningAccess, AccessLevel sendingAccess, String creator)
 	{
 		super(name, listeningAccess, sendingAccess, creator);
@@ -55,6 +57,12 @@ public class NickChannel extends NormalChannel
 		{
 			sender.sendMessage(ChatColor.RED + "You don't have a nick in channel " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
 		}
+	}
+	
+	@Override
+	public ChannelType getType()
+	{
+		return ChannelType.NICK;
 	}
 	
 	protected Map<String, String> nickMap = new HashMap<String, String>();

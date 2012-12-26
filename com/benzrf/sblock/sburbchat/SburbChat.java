@@ -40,10 +40,6 @@ public class SburbChat extends JavaPlugin
 		{
 			this.cm.writeChannels("plugins/SburbChat/", "channels.scd");
 		}
-		catch (FileNotFoundException e)
-		{
-			Logger.getLogger("Minecraft").warning(this.prefix + "Could not write channels!");
-		}
 		catch (IOException e)
 		{
 			Logger.getLogger("Minecraft").warning(this.prefix + "Error writing channels!");
@@ -75,25 +71,17 @@ public class SburbChat extends JavaPlugin
 		{
 			this.cm.readChannels("plugins/SburbChat/", "channels.scd");
 		}
-		catch (FileNotFoundException e1)
-		{
-			Logger.getLogger("Minecraft").warning(this.prefix + "No channels file!");
-		}
-		catch (IOException e1)
+		catch (IOException e)
 		{
 			Logger.getLogger("Minecraft").warning(this.prefix + "Error reading channels file!");
 		}
-		catch (ClassNotFoundException e1)
+		catch (ClassNotFoundException e)
 		{
 			Logger.getLogger("Minecraft").warning(this.prefix + "Error reading channels file!");
 		}
 		try
 		{
 			this.cm.readAliases("plugins/SburbChat/aliases.scd");
-		}
-		catch (FileNotFoundException e)
-		{
-			Logger.getLogger("Minecraft").warning(this.prefix + "No aliases file!");
 		}
 		catch (IOException e)
 		{

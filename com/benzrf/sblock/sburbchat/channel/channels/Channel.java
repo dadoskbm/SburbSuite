@@ -6,6 +6,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
+import com.benzrf.sblock.sburbchat.channel.ChannelType;
 
 public interface Channel
 {
@@ -15,6 +16,7 @@ public interface Channel
 	public AccessLevel getSAcess();
 	public AccessLevel getLAcess();
 	public Set<User> getUsers();
+	public ChannelType getType();
 	
 	public void addAlias(String name, User sender);
 	public void removeAlias(String name, User sender);
