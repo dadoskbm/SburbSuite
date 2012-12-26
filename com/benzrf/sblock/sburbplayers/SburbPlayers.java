@@ -96,6 +96,10 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			((CraftPlayer) event.getPlayer()).getHandle().a(this.tpacks.get(event.getPlayer().getWorld().getName()), 16);
 		}
+		if (event.getPlayer().getWorld().getName().equals("Prospit") || event.getPlayer().getWorld().getName().equals("Derse"))
+		{
+			event.getPlayer().setAllowFlight(true);
+		}
 	}
 	private void readPlayer(Player p) throws IOException, ClassNotFoundException
 	{
