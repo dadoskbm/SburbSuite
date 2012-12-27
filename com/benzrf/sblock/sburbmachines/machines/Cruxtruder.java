@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class Cruxtruder extends Machine
 {
+	public Cruxtruder(){}
 	public Cruxtruder(Location base, boolean tick)
 	{
 		this.base = base.getBlock().getLocation();
@@ -70,8 +71,32 @@ public class Cruxtruder extends Machine
 		if (!tick) return;
 	}
 	
-	private Location base;
-	private Location[] blocks;
+	@Override
+	public void makeSerializable()
+	{
+		this.sbase = Machine.lts(this.base);
+		this.sblocks = new String[this.blocks.length];
+		for (int i = 0; i < this.blocks.length; i++)
+		{
+			this.sblocks[i] = Machine.lts(this.blocks[i]);
+		}
+	}
+	
+	@Override
+	public void makeUsable()
+	{
+		this.base = Machine.stl(this.sbase);
+		this.blocks = new Location[this.sblocks.length];
+		for (int i = 0; i < this.sblocks.length; i++)
+		{
+			this.blocks[i] = Machine.stl(this.sblocks[i]);
+		}
+	}
+	
+	transient private Location base;
+	private String sbase;
+	transient private Location[] blocks;
+	private String[] sblocks;
 	private boolean tick;
 	private boolean broken = false;
 	

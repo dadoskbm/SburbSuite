@@ -1,12 +1,18 @@
 package com.benzrf.sblock.sburbmachines;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.bukkit.Location;
@@ -24,25 +30,48 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.benzrf.sblock.sburbmachines.machines.Cruxtruder;
 import com.benzrf.sblock.sburbmachines.machines.Machine;
+import com.benzrf.sblock.sburbmachines.machines.Transmaterializer;
+import com.google.gson.Gson;
 
 public class SburbMachines extends JavaPlugin implements Listener
 {
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onEnable()
 	{
+		SburbMachines.instance = this;
 		try
 		{
-			ObjectInputStream i = new ObjectInputStream(new FileInputStream(new File("plugins/SburbMachines/machines.smd")));
-			this.machines = (Map<Location, Machine>) i.readObject();
-			i.close();
+			this.smachines.addAll(Arrays.asList(this.gson.fromJson(this.readFile("plugins/SburbMachines/cruxtruders.smd"), Cruxtruder[].class)));
+			this.smachines.addAll(Arrays.asList(this.gson.fromJson(this.readFile("plugins/SburbMachines/transmaterializers.smd"), Transmaterializer[].class)));
+			for (Machine m : this.smachines)
+			{
+				m.makeUsable();
+				this.addMachine(m);
+			}
 		}
-		catch (Exception e)
+		catch (IOException e)
 		{
-			Logger.getLogger("Minecraft").warning("[SburbMachines] Error reading machines file!");
+			Logger.getLogger("Minecraft").warning("[SburbMachines] Error reading machine files!");
+			e.printStackTrace();
 		}
 		this.getServer().getPluginManager().registerEvents(this, this);
-		SburbMachines.instance = this;
+	}
+	
+	private String readFile(String path) throws IOException
+	{
+		String file;
+		FileInputStream stream = new FileInputStream(new File(path));
+		try
+		{
+			FileChannel fc = stream.getChannel();
+			MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+			file = Charset.defaultCharset().decode(bb).toString();
+		}
+		finally
+		{
+			stream.close();
+		}
+		return file;
 	}
 	
 	@Override
@@ -50,14 +79,29 @@ public class SburbMachines extends JavaPlugin implements Listener
 	{
 		try
 		{
-			ObjectOutputStream o = new ObjectOutputStream(new FileOutputStream(new File("plugins/SburbMachines/machines.smd")));
-			o.writeObject(this.machines);
-			o.flush();
-			o.close();
+			Set<Cruxtruder> cs = new HashSet<Cruxtruder>();
+			Set<Transmaterializer> ts = new HashSet<Transmaterializer>();
+			for (Machine m : this.smachines)
+			{
+				m.makeSerializable();
+				if (m instanceof Cruxtruder)
+				{
+					cs.add((Cruxtruder) m);
+				}
+				else if (m instanceof Transmaterializer)
+				{
+					ts.add((Transmaterializer) m);
+				}
+			}
+			BufferedWriter w;
+			w = new BufferedWriter(new FileWriter("plugins/SburbMachines/cruxtruders.smd"));
+			w.write(this.gson.toJson(cs));w.flush();w.close();
+			w = new BufferedWriter(new FileWriter("plugins/SburbMachines/transmaterializers.smd"));
+			w.write(this.gson.toJson(ts));w.flush();w.close();
 		}
 		catch (Exception e)
 		{
-			Logger.getLogger("Minecraft").warning("[SburbMachines] Error reading machines file!");
+			Logger.getLogger("Minecraft").warning("[SburbMachines] Error writing machine files!");
 		}
 	}
 	
@@ -67,18 +111,13 @@ public class SburbMachines extends JavaPlugin implements Listener
 		if (commandLabel.equalsIgnoreCase("crux"))
 		{
 			Cruxtruder c = new Cruxtruder(((Player) sender).getLocation(), false);
-			this.addMachine(c.getBlocks(), c);
+			this.addMachine(c);
 		}
 		else if (commandLabel.equalsIgnoreCase("delmachine"))
 		{
 			try
 			{
-				Location[] blocks = this.machines.get(((Player) sender).getTargetBlock(null, 100).getLocation()).getBlocks();
-				this.removeMachine(blocks);
-				for (Location block : blocks)
-				{
-					block.getBlock().setTypeIdAndData(0, (byte) 0, false);
-				}
+				this.deleteMachine(this.machines.get(((Player) sender).getTargetBlock(null, 100).getLocation()));
 			}
 			catch (NullPointerException e)
 			{
@@ -104,7 +143,7 @@ public class SburbMachines extends JavaPlugin implements Listener
 						b.getLocation().subtract(0, 1, 0).getBlock().setTypeId(0);
 						b.getWorld().createExplosion(b.getLocation(), 0);
 						Transmaterializer t = new Transmaterializer(b.getLocation().subtract(0, 2, 0));
-						this.addMachine(t.getBlocks(), t);
+						this.addMachine(t);
 					}
 				}
 				event.setCancelled(machines.get(b.getLocation()).onRightClick(event.getPlayer(), b) || event.isCancelled());
@@ -128,22 +167,35 @@ public class SburbMachines extends JavaPlugin implements Listener
 		}
 	}
 	
-	public void addMachine(Location[] blocks, Machine m)
+	public void addMachine(Machine m)
 	{
-		for (Location block : blocks)
+		this.smachines.add(m);
+		for (Location block : m.getBlocks())
 		{
 			this.machines.put(block, m);
 		}
 	}
 	
-	public void removeMachine(Location[] blocks)
+	public void removeMachine(Machine m)
 	{
-		for (Location block : blocks)
+		this.smachines.remove(m);
+		for (Location block : m.getBlocks())
 		{
 			this.machines.remove(block);
 		}
 	}
 	
+	public void deleteMachine(Machine m)
+	{
+		this.removeMachine(m);
+		for (Location block : m.getBlocks())
+		{
+			block.getBlock().setTypeIdAndData(0, (byte) 0, false);
+		}
+	}
+	
 	private Map<Location, Machine> machines = new HashMap<Location, Machine>();
+	private Set<Machine> smachines = new HashSet<Machine>();
+	private Gson gson = new Gson();
 	public static SburbMachines instance;
 }

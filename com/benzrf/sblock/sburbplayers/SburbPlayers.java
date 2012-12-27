@@ -282,7 +282,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		}
 		return true;
 	}
-
+	
 	public static String lts(Location l)
 	{
 		String out = "";
@@ -292,7 +292,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		out = out + l.getBlockZ();
 		return out;
 	}
-
+	
 	public static Location stl(String s)
 	{
 		String[] parts = s.split(",");
@@ -300,7 +300,8 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			return new Location(instance.getServer().getWorld(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]));
 		}
-		catch (ArrayIndexOutOfBoundsException e) {
+		catch (ArrayIndexOutOfBoundsException e)
+		{
 		}
 		return null;
 	}
