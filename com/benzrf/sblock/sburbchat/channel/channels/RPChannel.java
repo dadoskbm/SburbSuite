@@ -55,7 +55,7 @@ public class RPChannel extends NickChannel
 			}
 		}
 		String msg = event.getMessage();
-		msg = sender.hasPermission("sburbchat.chatcolor") ? msg.replaceAll("&([0-9a-fk-op])", ChatColor.COLOR_CHAR + "$1") : msg;
+		msg = sender.hasPermission("sburbchat.chatcolor") ? msg.replaceAll("&([0-9a-fk-or])", ChatColor.COLOR_CHAR + "$1") : msg;
 		this.sendToAll(this.getChatPrefix(sender, msg) + ((msg.startsWith("\\#") || msg.startsWith("#")) ? canonNicks.get(this.nickMap.get(sender.getName())).applyColor(msg.substring(1)) : canonNicks.get(this.nickMap.get(sender.getName())).apply(msg)));
 	}
 	
