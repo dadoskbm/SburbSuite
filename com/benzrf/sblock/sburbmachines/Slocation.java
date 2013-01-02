@@ -17,6 +17,9 @@ public class SLocation extends Location
 	{
 		in.defaultReadObject();
 	}
+<<<<<<< HEAD
+=======
 	
 //	private 
+>>>>>>> upstream/master
 }
