@@ -17,6 +17,4 @@ public class SLocation extends Location
 	{
 		in.defaultReadObject();
 	}
-	
-//	private 
 }

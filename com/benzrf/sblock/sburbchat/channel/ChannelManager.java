@@ -26,6 +26,10 @@ public class ChannelManager
 		{
 			return this.cMap.get(name.toLowerCase());
 		}
+		else if(cMap.containsKey("#" + name))
+		{
+			return this.cMap.get("#" + name.toLowerCase());
+		}
 		else
 		{
 			return this.cMap.get(this.aMap.get(name.toLowerCase()));

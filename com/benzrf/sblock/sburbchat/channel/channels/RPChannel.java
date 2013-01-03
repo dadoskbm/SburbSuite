@@ -95,22 +95,41 @@ public class RPChannel extends NickChannel
 		canonNicks.put(ChatColor.LIGHT_PURPLE + "Rose", new Quirker(ChatColor.LIGHT_PURPLE.toString(), "", null));
 		canonNicks.put(ChatColor.DARK_RED + "Dave", new Quirker(ChatColor.DARK_RED.toString(), "", null));
 		canonNicks.put(ChatColor.GREEN + "Jade", new Quirker(ChatColor.GREEN.toString(), "", null));
+		
 		canonNicks.put(ChatColor.DARK_GRAY + "Karkat", new Quirker(ChatColor.DARK_GRAY.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.karkat(msg);}}));//"a", "A", "b", "B", "c", "C", "d", "D", "e", "E", "f", "F", "g", "G", "h", "H", "i", "I", "j", "J", "k", "K", "l", "L", "m", "M", "n", "N", "o", "O", "p", "P", "q", "Q", "r", "R", "s", "S", "t", "T", "u", "U", "v", "V", "w", "W", "x", "X", "y", "Y", "z", "Z"));
 		canonNicks.put(ChatColor.DARK_PURPLE + "Gamzee", new Quirker(ChatColor.DARK_PURPLE.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.gamzee(msg);}}));
 		canonNicks.put(ChatColor.DARK_AQUA + "Terezi", new Quirker(ChatColor.DARK_AQUA.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.terezi(msg);}}));
 		canonNicks.put(ChatColor.YELLOW + "Sollux", new Quirker(ChatColor.YELLOW.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.sollux(msg);}}));
 		canonNicks.put(ChatColor.GOLD + "Tavros", new Quirker(ChatColor.GOLD.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.tavros(msg);}}));
-		canonNicks.put(ChatColor.RED + "Aradia", new Quirker(ChatColor.RED.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.aradia(msg);}}));
+		canonNicks.put(ChatColor.DARK_RED + "Aradia", new Quirker(ChatColor.DARK_RED.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.aradia(msg);}}));
 		canonNicks.put(ChatColor.DARK_GREEN + "Nepeta", new Quirker(ChatColor.DARK_GREEN.toString() + ":33 < ", "", new Quirkf(){String apply(String msg){return Quirkf.nepeta(msg);}}));
 		canonNicks.put(ChatColor.BLUE + "Vriska", new Quirker(ChatColor.BLUE.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.vriska(msg);}}));
 		canonNicks.put(ChatColor.DARK_BLUE + "Equius", new Quirker(ChatColor.DARK_BLUE.toString() + "D --> ", "", new Quirkf(){String apply(String msg){return Quirkf.equius(msg);}}));
 		canonNicks.put(ChatColor.DARK_GREEN + "Kanaya", new Quirker(ChatColor.DARK_GREEN.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.kanaya(msg);}}));
 		canonNicks.put(ChatColor.DARK_PURPLE + "Eridan", new Quirker(ChatColor.DARK_PURPLE.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.eridan(msg);}}));
 		canonNicks.put(ChatColor.DARK_PURPLE + "Feferi", new Quirker(ChatColor.DARK_PURPLE.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.feferi(msg);}}));
+		
 		canonNicks.put(ChatColor.BLUE + "Jane", new Quirker(ChatColor.BLUE.toString(), "", null));
 		canonNicks.put(ChatColor.LIGHT_PURPLE + "Roxy", new Quirker(ChatColor.LIGHT_PURPLE.toString(), "", null));
 		canonNicks.put(ChatColor.GOLD + "Dirk", new Quirker(ChatColor.GOLD.toString(), "", null));
 		canonNicks.put(ChatColor.DARK_GREEN + "Jake", new Quirker(ChatColor.DARK_GREEN.toString(), "", null));
+		
+		canonNicks.put(ChatColor.RED + "Kankri", new Quirker(ChatColor.RED.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.kankri(msg);}}));//"a", "A", "b", "B", "c", "C", "d", "D", "e", "E", "f", "F", "g", "G", "h", "H", "i", "I", "j", "J", "k", "K", "l", "L", "m", "M", "n", "N", "o", "O", "p", "P", "q", "Q", "r", "R", "s", "S", "t", "T", "u", "U", "v", "V", "w", "W", "x", "X", "y", "Y", "z", "Z"));
+		canonNicks.put(ChatColor.DARK_PURPLE + "Kurloz", new Quirker(ChatColor.DARK_PURPLE.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.kurloz(msg);}}));
+		canonNicks.put(ChatColor.DARK_AQUA + "Latula", new Quirker(ChatColor.DARK_AQUA.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.latula(msg);}}));
+		canonNicks.put(ChatColor.YELLOW + "Mituna", new Quirker(ChatColor.YELLOW.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.mituna(msg);}}));
+		canonNicks.put(ChatColor.GOLD + "Rufioh", new Quirker(ChatColor.GOLD.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.rufioh(msg);}}));
+		//canonNicks.put(ChatColor.DARK_RED + "Damara", new Quirker(ChatColor.DARK_RED.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.damara(msg);}}));
+		canonNicks.put(ChatColor.DARK_GREEN + "Meulin", new Quirker(ChatColor.DARK_GREEN.toString() + "(^._.^) ", "", new Quirkf(){String apply(String msg){return Quirkf.meulin(msg);}}));
+		canonNicks.put(ChatColor.BLUE + "Arenea", new Quirker(ChatColor.BLUE.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.vriska(msg);}})); //Same as Vriska?
+		canonNicks.put(ChatColor.DARK_BLUE + "Horuss", new Quirker(ChatColor.DARK_BLUE.toString() + "8=D < ", "", new Quirkf(){String apply(String msg){return Quirkf.horuss(msg);}}));
+		canonNicks.put(ChatColor.DARK_GREEN + "Porrim", new Quirker(ChatColor.DARK_GREEN.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.porrim(msg);}}));
+		canonNicks.put(ChatColor.DARK_PURPLE + "Cronus", new Quirker(ChatColor.DARK_PURPLE.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.cronus(msg);}}));
+		canonNicks.put(ChatColor.DARK_PURPLE + "Meenah", new Quirker(ChatColor.DARK_PURPLE.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.meenah(msg);}}));
+		
+		canonNicks.put(ChatColor.GRAY + "Calliope", new Quirker(ChatColor.GRAY.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.calliope(msg);}}));
+		canonNicks.put(ChatColor.DARK_GRAY + "Caliborn", new Quirker(ChatColor.DARK_GRAY.toString(), "", new Quirkf(){String apply(String msg){return Quirkf.caliborn(msg);}}));
+
 	}
 	
 	private static final long serialVersionUID = -4463076541248313240L;
@@ -140,13 +159,160 @@ class Quirker
 	private String suffix;
 	private String color;
 }
-class Quirkf
+abstract class Quirkf
 {
-	String apply(String msg)
+	@SuppressWarnings("unused")
+	private static String[] fakeJapanese = {"あなたのデュアルフォークを取る。二回自分自身をファック。", "あなたに性的快感を与えるために十分な厚さではない。",
+		"あなたはあなたの言葉で私を退屈続けるのだろうか？または。あなたは私の服を脱ぐのだろうか？", "私はあなたの歯の間に私の乳首を感じるようにしたい。", "時々私は、そのメモリに自慰行為。",
+		"性交あなたは何を話している？白痴雌犬。", "正確にどのくらいの。あなたは知りたいですか？", "あなたは私にはできません。あなたは私を性交することができない場合。",
+		"いいえクソ方法。", "罰金。しかし、あなたは私に借りがある。性的な接待。", "あなたは私の胸をいつでも表示することができます。", "私のおっぱいの上にミルクを注いでください。",
+		"私はそれがラフ好きです。私の体を押しつぶす。馬男。", "あなたは、幽霊のような私の性器が性的クライマックスを持っていることを確認してください。",
+		"私の裸の底にあなたの汗まみれの顔をこする。", "私はあなたのアジアの女子高生です。", "あなたは私を喜ばせる必要があります。あなたのホーンを使用してください。",
+		"静かにしています。黙って私をファック。", "私の体内に入る。", "あなたのセックスライフはどうですか？", "今私をファック。", "私にリンゴを養う。その後、私の髪をつかむ。",
+		"私はあなたのホーンを吸うことができます。同時に、あなたは私のお尻を平手打ち。リズミカルにそれを行う。", "性的エクスタシーを体験する私たちのすべてを引き起こす。",
+		"もっと私を低下させる。私はほとんどそこにいる。"};
+
+	abstract String apply(String msg);
+	
+	/**
+	 * Applies Caliborn's quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String caliborn(String msg) 
+	{
+		return msg.toUpperCase().replace('U', 'u').replaceAll("[:=][O\\)\\(DPS\\/]", "tumut");
+	}
+
+	/**
+	 * Applies Calliope's quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String calliope(String msg)
+	{
+		return msg.toLowerCase().replace('u', 'U'); //TODO Force British spellings
+	}
+
+	/**
+	 * Applies Meenah's quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String meenah(String msg) 
+	{
+		return msg.replace("H", ")(").replace("E","-E").replace("fucking","glubbing").replace("fuck", "glub"); //TODO More fish puns!
+	}
+
+	/**
+	 * Applies Cronus's quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String cronus(String msg)
+	{
+		return msg.replace("v", "vw").replace("V","VW").replace("w", "wv").replace("W", "WV").replace("B", "8");
+	}
+
+	/**
+	 * Applies Porrim's quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String porrim(String msg)
+	{
+		return msg.replace("o", "o+").replace("O","O+").replaceAll("[pP][lL][uU][sS]", "+");
+	}
+
+	/**
+	 * Applies Horuss' quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String horuss(String msg) 
+	{
+		return msg.replace('x', '%').replace("loo", "100").replace("lue", "100").replace("ool","001").replaceAll("[sS][tT][rR][oO][nN][gG]", "STRONG")
+				.replace("nay", "neigh").replace("fuck", "f*ck").replace("shit", "sh*t").replace("cock", "c*ck").replace("bitch", "b*tch")
+				.replace("cunt", "c*nt").replace("tits", "t*ts");
+	}
+
+	/**
+	 * Applies Meulin's quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String meulin(String msg)
+	{
+		
+		return msg.toUpperCase().replace("EE", "33").replace("FOR", "FUR").replace("PER", "PURR");
+	}
+
+	/**
+	 * Applies Damara's quirk to a string.
+	 * Does not yet work due to character encoding issues.
+	 * @param msg
+	 * @return
+	 */
+	static String damara(String msg)
 	{
 		return null;
+//		return fakeJapanese[new Random().nextInt(fakeJapanese.length)];
+		
 	}
-	
+
+	/**
+	 * Applies Rufioh's quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String rufioh(String msg)
+	{
+		return msg.replace("i", "1").replace(",", "... ");
+	}
+
+	/**
+	 * Applies Mituna's quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String mituna(String msg)
+	{
+		return msg.toUpperCase().replace("E", "3").replace("A", "4").replace("S", "5")
+				.replace("O", "0").replace("T", "7").replace("I","1").replace("B", "8");
+	}
+
+	/**
+	 * Applies Latula's quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String latula(String msg) 
+	{
+		return msg.toLowerCase().replace("a", "4").replace("i", "1").replace("e", "3");
+	}
+
+	/**
+	 * Applies Kurloz's quirk to a string.
+	 * NOTE: Kurloz speaks in mimes/images, which isn't really possible in MC, so I based his quirk
+	 * on his purple text when using his telepathic ability.
+	 * @param msg
+	 * @return
+	 */
+	static String kurloz(String msg) 
+	{
+		return msg.toUpperCase().replaceAll("\\p{Punct}", "");
+	}
+
+	/**
+	 * Applies Kankri's quirk to a string.
+	 * @param msg
+	 * @return
+	 */
+	static String kankri(String msg) 
+	{
+		return msg.replaceAll("[Bb]", "6").replaceAll("[Oo]", "9");
+	}
+
 	static String karkat(String msg)
 	{
 		return msg.toUpperCase();

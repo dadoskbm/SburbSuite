@@ -2,11 +2,13 @@ package com.benzrf.sblock.sburbchat;
 
 import static com.benzrf.sblock.sburbchat.commandparser.ArgumentType.*;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -61,8 +63,19 @@ public class SburbChat extends JavaPlugin
 	@Override
 	public void onEnable()
 	{
-		this.cm.newChannel("#", ChannelType.NORMAL, AccessLevel.PUBLIC, AccessLevel.PUBLIC, "benzrf")
-		.addMod("Dublek");
+		File dir = new File("plugins/SburbChat");
+		if(!dir.exists())
+		{
+			Logger.getLogger("Minecraft").info("SburbChat directory missing, creating directory");
+			dir.mkdir();
+		}
+		//Creates main channel and adds everyone in ops.txt as a mod.
+		this.cm.newChannel("#", ChannelType.NORMAL, AccessLevel.PUBLIC, AccessLevel.PUBLIC, "benzrf");
+
+		for(OfflinePlayer i : getServer().getOperators())
+		{
+			cm.getChannel("#").addMod(i.getName());
+		}
 		
 		this.commandRoot = buildCommandTree();
 		instance = this;
