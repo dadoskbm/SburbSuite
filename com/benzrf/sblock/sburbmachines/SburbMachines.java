@@ -16,16 +16,10 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.benzrf.sblock.sburbmachines.machines.Cruxtruder;
@@ -33,7 +27,7 @@ import com.benzrf.sblock.sburbmachines.machines.Machine;
 import com.benzrf.sblock.sburbmachines.machines.Transmaterializer;
 import com.google.gson.Gson;
 
-public class SburbMachines extends JavaPlugin implements Listener
+public class SburbMachines extends JavaPlugin
 {
 	@Override
 	public void onEnable()
@@ -51,10 +45,11 @@ public class SburbMachines extends JavaPlugin implements Listener
 		}
 		catch (IOException e)
 		{
-			Logger.getLogger("Minecraft").warning("[SburbMachines] Error reading machine files!");
+			Logger.getLogger("Minecraft").warning("[SburbMachines] Error reading machine files:");
 			e.printStackTrace();
 		}
-		this.getServer().getPluginManager().registerEvents(this, this);
+		this.listener = new SburbMachinesListener();
+		this.getServer().getPluginManager().registerEvents(this.listener, this);
 	}
 	
 	private String readFile(String path) throws IOException
@@ -101,13 +96,15 @@ public class SburbMachines extends JavaPlugin implements Listener
 		}
 		catch (Exception e)
 		{
-			Logger.getLogger("Minecraft").warning("[SburbMachines] Error writing machine files!");
+			Logger.getLogger("Minecraft").warning("[SburbMachines] Error writing machine files:");
+			e.printStackTrace();
 		}
 	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
+		if (!sender.isOp()) return true;
 		if (commandLabel.equalsIgnoreCase("crux"))
 		{
 			Cruxtruder c = new Cruxtruder(((Player) sender).getLocation(), false);
@@ -125,46 +122,6 @@ public class SburbMachines extends JavaPlugin implements Listener
 			}
 		}
 		return true;
-	}
-	
-	@EventHandler
-	public void onPlayerInteract(PlayerInteractEvent event)
-	{
-		try
-		{
-			Block b = event.getClickedBlock();
-			if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK))
-			{
-				if (!machines.containsKey(b.getLocation()) & !event.isCancelled() && b.getType().equals(Material.LEVER))
-				{
-					if (b.getLocation().subtract(0, 1, 0).getBlock().getType().equals(Material.IRON_BLOCK) && b.getLocation().subtract(0, 2, 0).getBlock().getType().equals(Material.GOLD_BLOCK))
-					{
-						b.setTypeId(0);
-						b.getLocation().subtract(0, 1, 0).getBlock().setTypeId(0);
-						b.getWorld().createExplosion(b.getLocation(), 0);
-						Transmaterializer t = new Transmaterializer(b.getLocation().subtract(0, 2, 0));
-						this.addMachine(t);
-					}
-				}
-				event.setCancelled(machines.get(b.getLocation()).onRightClick(event.getPlayer(), b) || event.isCancelled());
-			}
-			else if (event.getAction().equals(Action.LEFT_CLICK_BLOCK))
-			{
-				event.setCancelled(machines.get(b.getLocation()).onLeftClick(event.getPlayer(), b) || event.isCancelled());
-			}
-		}
-		catch (NullPointerException e)
-		{
-		}
-	}
-	
-	@EventHandler
-	public void onBlockBreak(BlockBreakEvent event)
-	{
-		if (machines.containsKey(event.getBlock().getLocation()))
-		{
-			event.setCancelled(machines.get(event.getBlock().getLocation()).onBreak(event.getPlayer(), event.getBlock()) || event.isCancelled());
-		}
 	}
 	
 	public void addMachine(Machine m)
@@ -194,8 +151,18 @@ public class SburbMachines extends JavaPlugin implements Listener
 		}
 	}
 	
-	private Map<Location, Machine> machines = new HashMap<Location, Machine>();
-	private Set<Machine> smachines = new HashSet<Machine>();
+	public void setBlock(Block b, int id, byte data, boolean phys)
+	{
+		if (this.machines.containsKey(b.getLocation()))
+		{
+			this.deleteMachine(this.machines.get(b.getLocation()));
+		}
+		b.setTypeIdAndData(id, data, phys);
+	}
+	
+	protected Map<Location, Machine> machines = new HashMap<Location, Machine>();
+	protected Set<Machine> smachines = new HashSet<Machine>();
+	private SburbMachinesListener listener;
 	private Gson gson = new Gson();
 	public static SburbMachines instance;
 }

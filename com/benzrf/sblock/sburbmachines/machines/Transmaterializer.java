@@ -1,6 +1,8 @@
 package com.benzrf.sblock.sburbmachines.machines;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -9,6 +11,7 @@ import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -23,38 +26,76 @@ public class Transmaterializer extends Machine
 	public Transmaterializer(Location base)
 	{
 		this.base = base.getBlock().getLocation();
-		
-		Location[] blocks = new Location[Transmaterializer.iron.length + Transmaterializer.doubleslab.length + Transmaterializer.slab.length + Transmaterializer.glass.length + Transmaterializer.emerald.length + 4];
-		blocks = this.setBlocks(Transmaterializer.iron, Material.IRON_BLOCK, blocks, 4);
-		blocks = this.setBlocks(Transmaterializer.doubleslab, Material.DOUBLE_STEP, blocks, Transmaterializer.iron.length + 4);
-		blocks = this.setBlocks(Transmaterializer.slab, Material.STEP, blocks, Transmaterializer.iron.length + Transmaterializer.doubleslab.length + 4);
-		blocks = this.setBlocks(Transmaterializer.glass, Material.GLASS, blocks, Transmaterializer.iron.length + Transmaterializer.doubleslab.length + Transmaterializer.slab.length + 4);
-		blocks = this.setBlocks(Transmaterializer.emerald, Material.EMERALD_BLOCK, blocks, Transmaterializer.iron.length + Transmaterializer.doubleslab.length + Transmaterializer.slab.length + Transmaterializer.glass.length + 4);
-		blocks[0] = Machine.addLocationDifference(this.base.clone(), Transmaterializer.gold);
-		blocks[0].getBlock().setType(Material.GOLD_BLOCK);
-		blocks[1] = Machine.addLocationDifference(this.base.clone(), Transmaterializer.chest);
-		blocks[1].getBlock().setType(Material.CHEST);
-		blocks[2] = Machine.addLocationDifference(this.base.clone(), Transmaterializer.button1);
-		blocks[2].getBlock().setTypeIdAndData(Material.STONE_BUTTON.getId(), (byte) 1, true);
-		blocks[3] = Machine.addLocationDifference(this.base.clone(), Transmaterializer.button2);
-		blocks[3].getBlock().setTypeIdAndData(Material.STONE_BUTTON.getId(), (byte) 2, true);
-		
-		this.blocks = blocks;
+		setBlocks(true);
 	}
 	
-	private Location[] setBlocks(int[][] blocks, Material block, Location[] array, int offset)
+	private void setBlocks(boolean remove)
+	{
+		final int single = 5;
+		Location[] blocks = new Location[Transmaterializer.iron.length + Transmaterializer.doubleslab.length + Transmaterializer.slab.length + Transmaterializer.glass.length + Transmaterializer.emerald.length + single];
+		blocks = this.setBlocks(Transmaterializer.iron, Material.IRON_BLOCK, blocks, single, remove);
+		blocks = this.setBlocks(Transmaterializer.doubleslab, Material.DOUBLE_STEP, blocks, Transmaterializer.iron.length + single, remove);
+		blocks = this.setBlocks(Transmaterializer.slab, Material.STEP, blocks, Transmaterializer.iron.length + Transmaterializer.doubleslab.length + single, remove);
+		blocks = this.setBlocks(Transmaterializer.glass, Material.GLASS, blocks, Transmaterializer.iron.length + Transmaterializer.doubleslab.length + Transmaterializer.slab.length + single, remove);
+		blocks = this.setBlocks(Transmaterializer.emerald, Material.EMERALD_BLOCK, blocks, Transmaterializer.iron.length + Transmaterializer.doubleslab.length + Transmaterializer.slab.length + Transmaterializer.glass.length + single, remove);
+		this.setBlock(Transmaterializer.gold, Material.GOLD_BLOCK, blocks, 0, (byte) 0, remove);
+		this.setBlock(Transmaterializer.chest, Material.CHEST, blocks, 1, (byte) 0, remove);
+		this.setBlock(Transmaterializer.button1, Material.STONE_BUTTON, blocks, 2, (byte) 1, remove);
+		this.setBlock(Transmaterializer.button2, Material.STONE_BUTTON, blocks, 3, (byte) 2, remove);
+		this.setBlock(Transmaterializer.wool, Material.WOOL, blocks, 4, (byte) 0, remove);
+		this.blocks = blocks;
+	}
+	private Location[] setBlocks(int[][] blocks, Material block, Location[] array, int offset, boolean remove)
 	{
 		for (int i = 0; i < blocks.length; i++)
 		{
 			array[i + offset] = this.base.clone().add(blocks[i][0], blocks[i][1], blocks[i][2]);
-			array[i + offset].getBlock().setType(block);
+			if (remove)
+			{
+				SburbMachines.instance.setBlock(array[i + offset].getBlock(), block.getId(), (byte) 0, false);
+			}
+			else
+			{
+				array[i + offset].getBlock().setType(block);
+			}
 		}
 		return array;
+	}
+	private void setBlock(int[] loc, Material block, Location[] array, int index, byte data, boolean remove)
+	{
+		array[index] = Machine.addLocationDifference(this.base.clone(), loc);
+		if (remove)
+		{
+			SburbMachines.instance.setBlock(array[index].getBlock(), block.getId(), data, false);
+		}
+		else
+		{
+			array[index].getBlock().setTypeIdAndData(block.getId(), data, false);
+		}
 	}
 	
 	@Override
 	public boolean onLeftClick(Player p, Block b)
 	{
+		if (this.isBlock(b, Transmaterializer.chest))
+		{
+			Inventory inv = ((Chest) this.blockFromDifference(Transmaterializer.chest).getState()).getInventory();
+			int add;
+			for (int i = 0; i < inv.getContents().length; i++)
+			{
+				ItemStack is = inv.getContents()[i];
+				if (is != null && Transmaterializer.fuels.containsKey(is.getType()))
+				{
+					add = Transmaterializer.fuels.get(is.getType()) * is.getAmount();
+					if ((this.fuel + add) <= Transmaterializer.maxFuel)
+					{
+						inv.clear(i);
+						this.fuel += add;
+					}
+				}
+			}
+			this.updateWool();
+		}
 		return false;
 	}
 	
@@ -63,7 +104,7 @@ public class Transmaterializer extends Machine
 	{
 		try
 		{
-			if (Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), Transmaterializer.button1) || Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), Transmaterializer.button2))
+			if (this.isBlock(b, Transmaterializer.button1) || this.isBlock(b, Transmaterializer.button2))
 			{
 				if (this.blockFromDifference(Transmaterializer.signx).getType().equals(Material.WALL_SIGN) &&
 					this.blockFromDifference(Transmaterializer.signy).getType().equals(Material.WALL_SIGN) &&
@@ -73,56 +114,68 @@ public class Transmaterializer extends Machine
 					target.setX(Float.parseFloat(((Sign) blockFromDifference(Transmaterializer.signx).getState()).getLine(0)));
 					target.setY(Float.parseFloat(((Sign) blockFromDifference(Transmaterializer.signy).getState()).getLine(0)));
 					target.setZ(Float.parseFloat(((Sign) blockFromDifference(Transmaterializer.signz).getState()).getLine(0)));
-					if (this.base.distance(target) < 300)
+					if (this.base.distance(target) < 1000)
 					{
-						Inventory i = ((Chest) this.blockFromDifference(chest).getState()).getInventory();
-						if (i.contains(Material.GLOWSTONE) && i.contains(Material.REDSTONE))
+						int icost = (int) Math.ceil(this.base.distance(target) / 200);
+						int ocost = (int) Math.ceil(this.base.distance(target) / 200) + 1;
+						if (Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), Transmaterializer.button1))
 						{
-							i.getItem(i.first(Material.GLOWSTONE)).setAmount(i.getItem(i.first(Material.GLOWSTONE)).getAmount() - 1);
-							i.getItem(i.first(Material.REDSTONE)).setAmount(i.getItem(i.first(Material.GLOWSTONE)).getAmount() - 1);
-							if (Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), Transmaterializer.button1))
+							Arrow a = this.base.getWorld().spawnArrow(base.clone().add(0.5, 1, 0.5), new Vector(), 0, 0);
+							for (Entity e : a.getNearbyEntities(1, 1, 1))
 							{
-								Arrow a = this.base.getWorld().spawnArrow(base.clone().add(0.5, 1, 0.5), new Vector(), 0, 0);
-								for (Entity e : a.getNearbyEntities(1, 1, 1))
+								if (e instanceof Item && this.fuel > (icost - 1))
 								{
+									this.fuel -= icost;
 									e.teleport(target);
 								}
-								a.remove();
-							}
-							else
-							{
-								Arrow a = this.base.getWorld().spawnArrow(target, new Vector(), 0, 0);
-								for (Entity e : a.getNearbyEntities(5, 5, 5))
+								else if (this.fuel > (ocost - 1))
 								{
+									this.fuel -= ocost;
+									e.teleport(target);
+								}
+							}
+							a.remove();
+						}
+						else
+						{
+							Arrow a = this.base.getWorld().spawnArrow(target, new Vector(), 0, 0);
+							for (Entity e : a.getNearbyEntities(5, 5, 5))
+							{
+								if (e instanceof Item && this.fuel > (icost - 1))
+								{
+									this.fuel -= icost;
 									e.teleport(base.clone().add(0.5, 1, 0.5));
 								}
-								a.remove();
+								else if (this.fuel > (ocost - 1))
+								{
+									this.fuel -= ocost;
+									e.teleport(base.clone().add(0.5, 1, 0.5));
+								}
 							}
-//							SburbMachines.instance.getServer().broadcastMessage("AWESOME");
+							a.remove();
 						}
+						this.updateWool();
 					}
-					else
-					{
-//						SburbMachines.instance.getServer().broadcastMessage("TOO FAR");
-						return false;
-					}
-				}
-				else
-				{
-//					SburbMachines.instance.getServer().broadcastMessage("SIGNS NOT SET");
 				}
 			}
 		}
-		catch (NumberFormatException e)
-		{
-//			SburbMachines.instance.getServer().broadcastMessage("INVALID COORDS");
-		}
+		catch (NumberFormatException e){}
 		return false;
+	}
+	
+	private boolean isBlock(Block b, int[] a)
+	{
+		return Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), a);
 	}
 	
 	private Block blockFromDifference(int[] a)
 	{
 		return Machine.addLocationDifference(this.base.clone(), a).getBlock();
+	}
+	
+	private void updateWool()
+	{
+		this.blockFromDifference(Transmaterializer.wool).setData((byte) (this.fuel == Transmaterializer.maxFuel ? 0x5 : (this.fuel > (Transmaterializer.maxFuel / 2) ? 0x4 : (this.fuel > 0 ? 0xE : 0x0))));
 	}
 	
 	@Override
@@ -165,6 +218,7 @@ public class Transmaterializer extends Machine
 		}
 	}
 	
+	private int fuel = 0;
 	transient private Location base;
 	private String sbase;
 	transient private Location[] blocks;
@@ -197,9 +251,19 @@ public class Transmaterializer extends Machine
 	static final int[] chest = {-2, 1, 1};
 	static final int[] button1 = {-1, 2, 0};
 	static final int[] button2 = {1, 2, 0};
+	static final int[] wool = {0, 4, 0};
 	static final int[] signx = {-1, 2, -1};
 	static final int[] signy = {0, 2, -1};
 	static final int[] signz = {1, 2, -1};
+	
+	static final int maxFuel = 612;
+	static final Map<Material, Integer> fuels = new HashMap<Material, Integer>();
+	static
+	{
+		fuels.put(Material.REDSTONE, 1);
+		fuels.put(Material.GLOWSTONE, 3);
+		fuels.put(Material.BLAZE_POWDER, 5);
+	}
 	
 	private static final long serialVersionUID = 5899573315323701783L;
 }

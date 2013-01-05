@@ -41,7 +41,7 @@ public class User
 				{
 					stream.close();
 				}
-				new User(p, pdata.split(String.valueOf(ChatColor.COLOR_CHAR)));
+				new User(p, pdata.split(String.valueOf(separator)));
 			}
 			else
 			{
@@ -98,13 +98,13 @@ public class User
 	public String logout()
 	{
 		users.remove(this.getName());
-		StringBuilder serialized = new StringBuilder().append(this.isMute ? "t" : "f").append(ChatColor.COLOR_CHAR).append(this.current.getName());
+		StringBuilder serialized = new StringBuilder().append(this.isMute ? "t" : "f").append(separator).append(this.current.getName());
 		this.listening.remove(this.current);
 		this.current.userLeave(this);
 		for (Channel c : this.listening)
 		{
 			c.userLeave(this);
-			serialized.append(ChatColor.COLOR_CHAR).append(c.getName());
+			serialized.append(separator).append(c.getName());
 		}
 		return serialized.toString();
 	}
@@ -388,6 +388,7 @@ public class User
 	private boolean isMute = false;
 	private Set<Channel> listening = new HashSet<Channel>();
 	private Channel current;
-		
+	
 	private static Map<String, User> users = new HashMap<String, User>();
+	private static final char separator = '/';
 }

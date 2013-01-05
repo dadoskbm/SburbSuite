@@ -5,6 +5,8 @@ import java.io.Serializable;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
 
 import com.benzrf.sblock.sburbmachines.SburbMachines;
 
@@ -13,6 +15,13 @@ public abstract class Machine implements Serializable
 	public abstract boolean onLeftClick(Player p, Block b);
 	public abstract boolean onRightClick(Player p, Block b);
 	public abstract boolean onBreak(Player p, Block b);
+	public void onOtherEvent(Event event)
+	{
+		if (event instanceof Cancellable)
+		{
+			((Cancellable) event).setCancelled(true);
+		}
+	}
 	
 	public void tick(){}
 	
