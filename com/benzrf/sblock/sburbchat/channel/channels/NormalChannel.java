@@ -130,6 +130,15 @@ public class NormalChannel implements Channel, Serializable
 	@Override
 	public void setChat(AsyncPlayerChatEvent event, User sender)
 	{
+		this.setChat(event.getMessage(), sender);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#setChat(java.lang.String, com.benzrf.sblock.sburbchat.User)
+	 */
+	@Override
+	public void setChat(String msg, User sender) 
+	{
 		if (this.muteList.contains(sender.getName()))
 		{
 			sender.sendMessage(ChatColor.RED + "You are muted in channel " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
@@ -158,7 +167,6 @@ public class NormalChannel implements Channel, Serializable
 				return;
 			}
 		}
-		String msg = event.getMessage();
 		msg = sender.hasPermission("sburbchat.chatcolor") ? msg.replaceAll("&([0-9a-fk-or])", ChatColor.COLOR_CHAR + "$1") : msg;
 		this.sendToAll(this.getChatPrefix(sender, msg) + ((msg.startsWith("\\#") || msg.startsWith("#")) ? msg.substring(1) : msg));
 	}
@@ -464,4 +472,6 @@ public class NormalChannel implements Channel, Serializable
 	protected List<String> muteList = new ArrayList<String>();
 	
 	private static final long serialVersionUID = 7159274535690404352L;
+
+	
 }

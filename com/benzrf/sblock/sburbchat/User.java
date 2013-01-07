@@ -250,6 +250,24 @@ public class User
 		}
 	}
 	
+	/**
+	 * Sends a message to a channel without changing the client's active channel
+	 * @param channel Channel to send to
+	 * @param message Message to be sent
+	 * @author FireNG
+	 */
+	public void sendOnce(Channel channel, String message)
+	{
+		if(listening.contains(channel))
+		{
+			channel.setChat(message, this);
+		}
+		else
+		{
+			this.sendMessage(ChatColor.GOLD + "You must be listening to " + channel.getName() + " to send messages to it!");
+		}
+	}
+	
 	public void listUsers()
 	{
 		this.sendMessage(ChatColor.YELLOW + "Users in channel " + ChatColor.GOLD + current.getName() + ChatColor.YELLOW + ":");

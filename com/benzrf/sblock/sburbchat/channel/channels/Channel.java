@@ -43,4 +43,11 @@ public interface Channel
 	public void deapproveUser(User user, User sender);
 	
 	public void disband(User sender);
+	/**
+	 * Sends a single message to this channel.
+	 * @param message Message to display
+	 * @param sender User that originated the message
+	 * @author FireNG
+	 */
+	public void setChat(String message, User sender);
 }

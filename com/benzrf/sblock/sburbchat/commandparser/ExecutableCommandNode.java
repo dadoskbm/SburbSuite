@@ -15,6 +15,11 @@ public class ExecutableCommandNode extends CommandNode
 	{
 		super(name, parent);
 		this.argTypes = Arrays.asList(args);
+		for(ArgumentType argtype : argTypes)
+		{
+			if(argtype.mergeArguments() && argTypes.indexOf(argtype) != argTypes.size() - 1)
+				throw new IllegalArgumentException("Argument type " + argtype + " must be the last argument in the command.");
+		}
 		Class<?>[] cArgTypes = new Class<?>[argTypes.size()];
 		for (int i = 0; i < argTypes.size(); i++)
 		{
