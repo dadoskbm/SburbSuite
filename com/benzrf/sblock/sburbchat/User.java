@@ -20,6 +20,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
 import com.benzrf.sblock.sburbchat.channel.channels.Channel;
+import com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel;
 
 public class User
 {
@@ -131,7 +132,7 @@ public class User
 	
 	public void chat(AsyncPlayerChatEvent event)
 	{
-		this.current.setChat(event, this);
+		this.current.setChat(event.getMessage(), this);
 	}
 	
 	public void kickFrom(Channel c)
@@ -258,13 +259,9 @@ public class User
 	 */
 	public void sendOnce(Channel channel, String message)
 	{
-		if(listening.contains(channel))
+		if(listening.contains(channel) || this.addListening(channel))
 		{
 			channel.setChat(message, this);
-		}
-		else
-		{
-			this.sendMessage(ChatColor.GOLD + "You must be listening to " + channel.getName() + " to send messages to it!");
 		}
 	}
 	
@@ -328,6 +325,15 @@ public class User
 	}
 	
 	// mod commands
+	
+	/**
+	 * Sets who is allowed to use chat colors in the current channel
+	 * @param level Access level to use.
+	 */
+	public void setColorAccess(PrivilegeLevel level)
+	{
+		this.current.setColorAccess(level, this);
+	}
 	
 	public void kick(User user)
 	{

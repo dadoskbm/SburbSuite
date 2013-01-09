@@ -3,16 +3,19 @@ package com.benzrf.sblock.sburbchat.channel.channels;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import com.benzrf.sblock.sburbchat.SburbChat;
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
+import com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel;
 
 public class NormalChannel implements Channel, Serializable
 {
@@ -127,18 +130,14 @@ public class NormalChannel implements Channel, Serializable
 		this.listening.remove(sender);
 	}
 	
-	@Override
-	public void setChat(AsyncPlayerChatEvent event, User sender)
-	{
-		this.setChat(event.getMessage(), sender);
-	}
 	
 	/* (non-Javadoc)
 	 * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#setChat(java.lang.String, com.benzrf.sblock.sburbchat.User)
 	 */
 	@Override
-	public void setChat(String msg, User sender) 
+	public void setChat(String m, User sender) 
 	{
+		String msg = m;
 		if (this.muteList.contains(sender.getName()))
 		{
 			sender.sendMessage(ChatColor.RED + "You are muted in channel " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
@@ -168,6 +167,16 @@ public class NormalChannel implements Channel, Serializable
 			}
 		}
 		msg = sender.hasPermission("sburbchat.chatcolor") ? msg.replaceAll("&([0-9a-fk-or])", ChatColor.COLOR_CHAR + "$1") : msg;
+		switch(colorAccess)
+		{
+		case ALL:
+			break;
+		case MODSONLY:
+			if(modList.contains(sender.getName()))
+				break;
+		case NONE:
+			msg = ChatColor.stripColor(msg);
+		}
 		this.sendToAll(this.getChatPrefix(sender, msg) + ((msg.startsWith("\\#") || msg.startsWith("#")) ? msg.substring(1) : msg));
 	}
 	
@@ -419,6 +428,22 @@ public class NormalChannel implements Channel, Serializable
 		}
 	}
 	
+	/* (non-Javadoc)
+     * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#setColorAccess(com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel, com.benzrf.sblock.sburbchat.User)
+     */
+    @Override
+    public void setColorAccess(PrivilegeLevel level, User user)
+    {
+    	if(modList.contains(user.getName()))
+    	{
+    		this.colorAccess = level;
+    		this.sendToAll(ChatColor.GOLD + "Chat colors are now permitted for " + ChatColor.AQUA + level.group() + ChatColor.GOLD + ".");
+    		user.sendMessageFromChannel(ChatColor.GREEN + "Action successful", this);
+    	}
+    	else
+    		user.sendMessageFromChannel(ChatColor.RED + "You do not have permission to do this in " + ChatColor.GOLD + this.name, this);
+    	
+    }
 	@Override
 	public AccessLevel getSAcess()
 	{
@@ -463,6 +488,7 @@ public class NormalChannel implements Channel, Serializable
 	protected AccessLevel listeningAccess;
 	protected AccessLevel sendingAccess;
 	protected String owner;
+	protected PrivilegeLevel colorAccess = PrivilegeLevel.ALL;
 	protected transient boolean disband = false;
 	
 	protected transient Set<User> listening = new HashSet<User>();

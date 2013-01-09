@@ -146,6 +146,7 @@ public class SburbChat extends JavaPlugin
 		new ExecutableCommandNode("disband", channel, "disband");
 		
 		CommandNode mod = new CommandNode("mod", root);
+		new ExecutableCommandNode("colors", mod, "setColorAccess", PRIVILEGE_LEVEL);
 		new ExecutableCommandNode("kick", mod, "kick", USER);
 		new ExecutableCommandNode("ban", mod, "ban", USER);
 		new ExecutableCommandNode("unban", mod, "unban", USER);

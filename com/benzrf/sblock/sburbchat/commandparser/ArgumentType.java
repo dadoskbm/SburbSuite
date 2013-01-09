@@ -14,6 +14,7 @@ public enum ArgumentType
 	ALIAS(ChatColor.BLUE + "aliasname", new AliasArgumentValidator(), new StringArgumentConverter(), String.class),
 	MESSAGE("message", new StringArgumentValidator(), new StringArgumentConverter(), String.class, true),
 	NICK("nick", new StringArgumentValidator(), new StringArgumentConverter(), String.class),
+	PRIVILEGE_LEVEL("level", new PrivilegeArgumentValidator(), new PrivilegeArgumentConverter(), PrivilegeLevel.class),
 	CHANNEL(ChatColor.GOLD + "#channelname", new ChannelArgumentValidator(), new ChannelArgumentConverter(), Channel.class),
 	NEW_CHANNEL(ChatColor.GOLD + "#channelname", new NewChannelArgumentValidator(), new StringArgumentConverter(), String.class),
 	USER("username", new UserArgumentValidator(), new UserArgumentConverter(), User.class),

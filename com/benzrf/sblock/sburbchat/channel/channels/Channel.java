@@ -2,11 +2,10 @@ package com.benzrf.sblock.sburbchat.channel.channels;
 
 import java.util.Set;
 
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
+import com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel;
 
 public interface Channel
 {
@@ -24,7 +23,13 @@ public interface Channel
 	public boolean userJoin(User sender);
 	public void userLeave(User sender);
 	
-	public void setChat(AsyncPlayerChatEvent event, User sender);
+	/**
+	 * Sends a single message to this channel.
+	 * @param message Message to display
+	 * @param sender User that originated the message
+	 * @author FireNG
+	 */
+	public void setChat(String message, User sender);
 	
 	public void setNick(String nick, User sender);
 	public void removeNick(User sender);
@@ -43,11 +48,11 @@ public interface Channel
 	public void deapproveUser(User user, User sender);
 	
 	public void disband(User sender);
+
 	/**
-	 * Sends a single message to this channel.
-	 * @param message Message to display
-	 * @param sender User that originated the message
+	 * Sets who is allowed to use chat colors in this channel
+	 * @param level Access level to use.
 	 * @author FireNG
 	 */
-	public void setChat(String message, User sender);
+	public void setColorAccess(PrivilegeLevel level, User user);
 }
