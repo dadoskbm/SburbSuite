@@ -175,6 +175,10 @@ public class NormalChannel implements Channel, Serializable
 		{
 			color = ChatColor.RED;
 		}
+		else if (sender.hasPermission("sburbchat.gname"))
+		{
+			color = ChatColor.GREEN;
+		}
 		return (message.startsWith("#") ? "* " : "<") + color + sender.getName() + ChatColor.WHITE + (message.startsWith("#") ? "" : "> ");
 	}
 	

@@ -28,6 +28,10 @@ public class NickChannel extends NormalChannel
 		{
 			color = ChatColor.RED;
 		}
+		else if (sender.hasPermission("sburbchat.gname"))
+		{
+			color = ChatColor.GREEN;
+		}
 		return (message.startsWith("#") ? "* " : "<") + color + (nickMap.containsKey(sender.getName()) ? nickMap.get(sender.getName()) : sender.getName()) + ChatColor.WHITE + (message.startsWith("#") ? "" : "> ");
 	}
 	
