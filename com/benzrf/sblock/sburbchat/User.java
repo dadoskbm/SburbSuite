@@ -121,7 +121,7 @@ public class User
 	{
 		if (!this.isMute || c.equals(this.current))
 		{
-			if (s.indexOf(this.getName()) > 2)
+			if (ChatColor.stripColor(s).indexOf(this.getName()) > 3)
 			{
 				this.pthis.sendMessage(c.getPrefix() + ChatColor.BLUE + "{!} " + s);
 				this.pthis.playEffect(this.pthis.getLocation(), Effect.GHAST_SHOOT, 0);
