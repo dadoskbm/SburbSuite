@@ -2,6 +2,7 @@ package com.benzrf.sblock.sburbmachines.machines;
 
 import java.util.Arrays;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -47,14 +48,14 @@ public class Cruxtruder extends Machine
 	@Override
 	public boolean onBreak(Player p, Block b)
 	{
-		if (!this.broken && Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), Cruxtruder.top))
+		if (Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), Cruxtruder.top))
 		{
 			this.broken = true;
 			return false;
 		}
 		else if (this.broken && Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), Cruxtruder.diamond))
 		{
-			this.base.getWorld().dropItem(this.base.clone().add(Cruxtruder.top[0], Cruxtruder.top[1], Cruxtruder.top[2]), new ItemStack(Material.SKULL_ITEM));
+			this.base.getWorld().dropItem(this.base.clone().add(Cruxtruder.top[0], Cruxtruder.top[1], Cruxtruder.top[2]), Cruxtruder.cruxite);
 		}
 		return true;
 	}
@@ -118,6 +119,13 @@ public class Cruxtruder extends Machine
 	static final int[] sign = {0, 1, 2};
 	static final int[] diamond = {0, 2, 0};
 	static final int[] top = {0, 3, 0};
+	
+	static final ItemStack cruxite;
+	static
+	{
+		cruxite = new ItemStack(Material.SKULL_ITEM);
+		cruxite.getItemMeta().setDisplayName(ChatColor.WHITE + "Uncarved Cruxite Dowel");
+	}
 	
 	private static final long serialVersionUID = -3516283273370627172L;
 }
