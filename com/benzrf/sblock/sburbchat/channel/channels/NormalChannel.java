@@ -198,7 +198,9 @@ public class NormalChannel implements Channel, Serializable
 		case NONE:
 			msg = ChatColor.stripColor(msg);
 		}
-		this.sendToAll(this.getChatPrefix(sender, msg) + ((msg.startsWith("\\#") || msg.startsWith("#")) ? msg.substring(1) : msg));
+		msg = ((msg.startsWith("\\#") || msg.startsWith("#")) ? msg.substring(1) : msg);
+		msg = ((msg.startsWith("\\@") || msg.startsWith("@")) ? msg.substring(1) : msg);
+		this.sendToAll(this.getChatPrefix(sender, msg) + msg);
 	}
 	
 	@Override
