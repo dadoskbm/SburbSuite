@@ -1,12 +1,17 @@
 package com.benzrf.sblock.sburbchat.channel.channels;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
 
+import com.benzrf.sblock.sburbchat.SburbChat;
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
@@ -138,6 +143,25 @@ public class RPChannel extends NickChannel
 		user.sendMessageFromChannel(ChatColor.RED + "Roleplay channels never allow color changes!", this);
 	}
 	
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
+	{
+		in.defaultReadObject();
+		this.listening = new HashSet<User>();
+		SburbChat.getInstance().getChannelManager().registerChannel(this);
+		for (String user : this.nickMap.keySet())
+		{
+			this.nickMap.put(user, this.nickMap.get(user).replace('&', ChatColor.COLOR_CHAR));
+		}
+	}
+	
+	private void writeObject(ObjectOutputStream out) throws IOException
+	{
+		for (String user : this.nickMap.keySet())
+		{
+			this.nickMap.put(user, this.nickMap.get(user).replace(ChatColor.COLOR_CHAR, '&'));
+		}
+		out.defaultWriteObject();
+	}
 	
 	static Map<String, Quirker> canonNicks = new HashMap<String, Quirker>();
 	static
