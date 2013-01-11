@@ -1,5 +1,7 @@
 package com.benzrf.sblock.sburbchat.channel.channels;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +20,49 @@ public class RPChannel extends NickChannel
 		super(name, listeningAccess, sendingAccess, creator);
 	}
 	
+
+	private String getChatVerb(String nick)
+	{
+		if(nick.equals("John") || nick.equals("Dave") || nick.equals("Rose") || nick.equals("Jade")
+				|| nick.equals("Dirk") || nick.equals("Jane") || nick.equals("Jake") || nick.equals("Roxy"))
+			return "pester";
+		else if(nick.equals("Calliope"))
+			return "cheer";
+		else if(nick.equals("Caliborn"))
+			return "jeer";
+		else
+			return "troll";
+	}
+	
+	@Override
+    public String getJoinChatMessage(User sender)
+    {
+		String nick = nickMap.get(sender.getName());
+		if(nick != null)
+		{
+        	String time24h = new SimpleDateFormat("HH:mm").format(new Date());
+        	String chatVerb = getChatVerb(ChatColor.stripColor(nick));
+    		return nick + ChatColor.YELLOW + " began " + chatVerb + "ing " + ChatColor.GOLD 
+    				+ this.name + ChatColor.YELLOW +  (chatVerb.equals("pester") ? " at " + time24h : "");
+		}
+		else
+		{
+			return super.getJoinChatMessage(sender);
+		}
+    }
+	/* (non-Javadoc)
+     * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#getLeaveChatMessage()
+     */
+    @Override
+    public String getLeaveChatMessage(User sender)
+    {
+    	String nick = nickMap.get(sender.getName());
+    	if(nick != null)
+    		return ChatColor.YELLOW + sender.getName() + ChatColor.YELLOW + " ceased " + getChatVerb(ChatColor.stripColor(nick)) + "ing " + ChatColor.GOLD + this.name;
+    	else
+    		return super.getLeaveChatMessage(sender);
+    }
+
 	@Override
 	public void setChat(String m, User sender)
 	{

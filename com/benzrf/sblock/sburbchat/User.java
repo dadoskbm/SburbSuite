@@ -15,7 +15,6 @@ import java.util.Set;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
@@ -145,7 +144,21 @@ public class User
 	
 	public void chat(AsyncPlayerChatEvent event)
 	{
-		this.current.setChat(event.getMessage(), this);
+		String chatmsg = event.getMessage();
+		if(chatmsg.matches("\\A@.+ .+"))
+		{
+			String chname = chatmsg.substring(chatmsg.indexOf('@') + 1, chatmsg.indexOf(" "));
+			String message = chatmsg.substring(chatmsg.indexOf(" ") + 1);
+			Channel channel = SburbChat.getInstance().getChannelManager().getChannel(chname);
+			if(channel != null)
+				this.sendOnce(channel, message);
+			else
+				this.sendMessage(ChatColor.RED + chname + " does not exist!");
+		}
+		else
+		{
+			this.current.setChat(chatmsg, this);
+		}
 	}
 	
 	public void kickFrom(Channel c)
