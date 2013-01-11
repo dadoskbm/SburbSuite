@@ -145,24 +145,22 @@ public class RPChannel extends NickChannel
 		user.sendMessageFromChannel(ChatColor.RED + "Roleplay channels never allow color changes!", this);
 	}
 	
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
+	@Override
+	public void makeUsable()
 	{
-		in.defaultReadObject();
-		this.listening = new HashSet<User>();
-		SburbChat.getInstance().getChannelManager().registerChannel(this);
 		for (String user : this.nickMap.keySet())
 		{
 			this.nickMap.put(user, this.nickMap.get(user).replace('&', ChatColor.COLOR_CHAR));
 		}
 	}
 	
-	private void writeObject(ObjectOutputStream out) throws IOException
+	@Override
+	public void makeSerializable()
 	{
 		for (String user : this.nickMap.keySet())
 		{
 			this.nickMap.put(user, this.nickMap.get(user).replace(ChatColor.COLOR_CHAR, '&'));
 		}
-		out.defaultWriteObject();
 	}
 	
 	static Map<String, Quirker> canonNicks = new HashMap<String, Quirker>();
