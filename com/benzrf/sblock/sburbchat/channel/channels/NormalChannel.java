@@ -194,8 +194,7 @@ public class NormalChannel implements Channel, Serializable
 		case ALL:
 			break;
 		case MODSONLY:
-			if(modList.contains(sender.getName()))
-				break;
+			if (!modList.contains(sender.getName())) msg = ChatColor.stripColor(msg);
 		case NONE:
 			msg = ChatColor.stripColor(msg);
 		}
@@ -213,6 +212,10 @@ public class NormalChannel implements Channel, Serializable
 		else if (this.modList.contains(sender.getName()))
 		{
 			color = ChatColor.RED;
+		}
+		else if (sender.hasPermission("sburbchat.gname"))
+		{
+			color = ChatColor.GREEN;
 		}
 		return (message.startsWith("#") ? "* " : "<") + color + sender.getName() + ChatColor.WHITE + (message.startsWith("#") ? "" : "> ");
 	}

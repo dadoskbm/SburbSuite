@@ -20,6 +20,7 @@ public class RPChannel extends NickChannel
 		super(name, listeningAccess, sendingAccess, creator);
 	}
 	
+
 	private String getChatVerb(String nick)
 	{
 		if(nick.equals("John") || nick.equals("Dave") || nick.equals("Rose") || nick.equals("Jade")
@@ -61,11 +62,10 @@ public class RPChannel extends NickChannel
     	else
     		return super.getLeaveChatMessage(sender);
     }
-	
+
 	@Override
 	public void setChat(String m, User sender)
 	{
-		String msg = ChatColor.stripColor(m); //Always remove colors!
 		if (this.muteList.contains(sender.getName()))
 		{
 			sender.sendMessage(ChatColor.RED + "You are muted in channel " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
@@ -99,8 +99,8 @@ public class RPChannel extends NickChannel
 				return;
 			}
 		}
-		msg = sender.hasPermission("sburbchat.chatcolor") ? msg.replaceAll("&([0-9a-fk-or])", ChatColor.COLOR_CHAR + "$1") : msg;
-		this.sendToAll(this.getChatPrefix(sender, msg) + ((msg.startsWith("\\#") || msg.startsWith("#")) ? canonNicks.get(this.nickMap.get(sender.getName())).applyColor(msg.substring(1)) : canonNicks.get(this.nickMap.get(sender.getName())).apply(msg)));
+		m = sender.hasPermission("sburbchat.chatcolor") ? m.replaceAll("&([0-9a-fk-or])", "") : m;
+		this.sendToAll(this.getChatPrefix(sender, m) + ((m.startsWith("\\#") || m.startsWith("#")) ? canonNicks.get(this.nickMap.get(sender.getName())).applyColor(m.substring(1)) : canonNicks.get(this.nickMap.get(sender.getName())).apply(m)));
 	}
 	
 	@Override
@@ -212,7 +212,7 @@ class Quirker
 }
 abstract class Quirkf
 {
-
+	
 	abstract String apply(String msg);
 	
 	/**
