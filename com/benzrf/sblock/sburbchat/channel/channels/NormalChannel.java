@@ -172,8 +172,7 @@ public class NormalChannel implements Channel, Serializable
 		case ALL:
 			break;
 		case MODSONLY:
-			if(modList.contains(sender.getName()))
-				break;
+			if (!modList.contains(sender.getName())) msg = ChatColor.stripColor(msg);
 		case NONE:
 			msg = ChatColor.stripColor(msg);
 		}

@@ -18,12 +18,9 @@ public class RPChannel extends NickChannel
 		super(name, listeningAccess, sendingAccess, creator);
 	}
 	
-
-	
 	@Override
 	public void setChat(String m, User sender)
 	{
-		String msg = ChatColor.stripColor(m); //Always remove colors!
 		if (this.muteList.contains(sender.getName()))
 		{
 			sender.sendMessage(ChatColor.RED + "You are muted in channel " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
@@ -57,7 +54,7 @@ public class RPChannel extends NickChannel
 				return;
 			}
 		}
-		msg = sender.hasPermission("sburbchat.chatcolor") ? msg.replaceAll("&([0-9a-fk-or])", ChatColor.COLOR_CHAR + "$1") : msg;
+		msg = sender.hasPermission("sburbchat.chatcolor") ? msg.replaceAll("&([0-9a-fk-or])", "") : msg;
 		this.sendToAll(this.getChatPrefix(sender, msg) + ((msg.startsWith("\\#") || msg.startsWith("#")) ? canonNicks.get(this.nickMap.get(sender.getName())).applyColor(msg.substring(1)) : canonNicks.get(this.nickMap.get(sender.getName())).apply(msg)));
 	}
 	
