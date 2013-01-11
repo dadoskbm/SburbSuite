@@ -150,10 +150,25 @@ public class User
 			String chname = chatmsg.substring(chatmsg.indexOf('@') + 1, chatmsg.indexOf(" "));
 			String message = chatmsg.substring(chatmsg.indexOf(" ") + 1);
 			Channel channel = SburbChat.getInstance().getChannelManager().getChannel(chname);
-			if(channel != null)
-				this.sendOnce(channel, message);
-			else
-				this.sendMessage(ChatColor.RED + chname + " does not exist!");
+			if(channel == null)
+			{
+				this.sendMessage(ChatColor.GOLD + chname + ChatColor.RED + " does not exist!");
+				return;
+			}
+			if(listening.contains(channel) || this.addListening(channel))
+			{
+				if (message.indexOf('/') == 0)
+				{
+					Channel c = this.current;
+					this.current = channel;
+					this.pthis.performCommand(message.substring(1));
+					this.current = c;
+				}
+				else
+				{
+					channel.setChat(message, this);
+				}
+			}
 		}
 		else
 		{
