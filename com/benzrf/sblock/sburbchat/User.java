@@ -126,10 +126,10 @@ public class User
 			if (ChatColor.stripColor(s).indexOf(this.getName()) > 3)
 			{
 				this.pthis.sendMessage(c.getPrefix() + ChatColor.BLUE + "{!} " + ChatColor.WHITE + s);
-				this.pthis.sendBlockChange(this.pthis.getLocation().add(0, 2, 0), Material.NOTE_BLOCK, (byte) 0);
-				this.pthis.playNote(this.pthis.getLocation().add(0, 2, 0), (byte) 0, (byte) 6);
-				this.pthis.sendBlockChange(this.pthis.getLocation().add(0, 2, 0), this.pthis.getLocation().add(0, 2, 0).getBlock().getType(), this.pthis.getLocation().add(0, 2, 0).getBlock().getData());
-				// this.pthis.playEffect(this.pthis.getLocation(), Effect.GHAST_SHOOT, 0);
+				// this.pthis.sendBlockChange(this.pthis.getLocation().add(0, 2, 0), Material.NOTE_BLOCK, (byte) 0);
+				// this.pthis.playNote(this.pthis.getLocation().add(0, 2, 0), (byte) 0, (byte) 6);
+				// this.pthis.sendBlockChange(this.pthis.getLocation().add(0, 2, 0), this.pthis.getLocation().add(0, 2, 0).getBlock().getType(), this.pthis.getLocation().add(0, 2, 0).getBlock().getData());
+				this.pthis.playEffect(this.pthis.getLocation(), Effect.GHAST_SHOOT, 0);
 			}
 			else
 			{
