@@ -25,29 +25,42 @@ public class CommandParser
 				c = c.getChild(next);
 				if (c instanceof ExecutableCommandNode)
 				{
+					ExecutableCommandNode node = (ExecutableCommandNode) c;
 					int remaining = lCommand.size() - lCommand.indexOf(next) - 1; 
-					if (((ExecutableCommandNode) c).getNeededArguments().size() != remaining)
+					if ((!node.getNeededArguments().contains(ArgumentType.MESSAGE) && node.getNeededArguments().size() != remaining )
+							|| node.getNeededArguments().size() > remaining)
 					{
-						sender.sendMessage(ChatColor.RED + ((ExecutableCommandNode) c).generateArgumentListErrorMessage());
+						sender.sendMessage(ChatColor.RED + node.generateArgumentListErrorMessage());
 						return;
 					}
 					else
 					{
-						Iterator<ArgumentType> iAt = ((ExecutableCommandNode) c).getNeededArguments().iterator();
+						Iterator<ArgumentType> iAt = node.getNeededArguments().iterator();
 						List<String> args = new ArrayList<String>();
 						ArgumentType nextAt;
 						while (iCommand.hasNext())
 						{
 							next = iCommand.next();
-							args.add(next);
 							nextAt = iAt.next();
 							if (!nextAt.isArgumentValid(next))
 							{
 								sender.sendMessage(ChatColor.RED + next + " is not a valid " + nextAt.getHumanName() + ChatColor.RED + "!");
 								return;
 							}
+							if(nextAt.mergeArguments())
+							{
+								StringBuilder sb = new StringBuilder();
+								for(String word : lCommand.subList(lCommand.indexOf(next), lCommand.size()))
+								{
+									sb.append(word + " ");
+								}
+								args.add(sb.toString().trim());
+								break;
+							}
+							args.add(next);
+							
 						}
-						((ExecutableCommandNode) c).invoke(args, sender);
+						node.invoke(args, sender);
 						return;
 					}
 				}

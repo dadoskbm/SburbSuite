@@ -129,6 +129,7 @@ public class SburbChat extends JavaPlugin
 		new ExecutableCommandNode("remove", root, "removeListening", CHANNEL);
 		new ExecutableCommandNode("m", root, "toggleMute");
 		new ExecutableCommandNode("mute", root, "toggleMute");
+		new ExecutableCommandNode("msg", root, "sendOnce", CHANNEL, MESSAGE);
 		new ExecutableCommandNode("w", root, "listUsers");
 		new ExecutableCommandNode("who", root, "listUsers");
 		new ExecutableCommandNode("ch", root, "listChannels");
@@ -145,6 +146,7 @@ public class SburbChat extends JavaPlugin
 		new ExecutableCommandNode("disband", channel, "disband");
 		
 		CommandNode mod = new CommandNode("mod", root);
+		new ExecutableCommandNode("colors", mod, "setColorAccess", PRIVILEGE_LEVEL);
 		new ExecutableCommandNode("kick", mod, "kick", USER);
 		new ExecutableCommandNode("ban", mod, "ban", USER);
 		new ExecutableCommandNode("unban", mod, "unban", USER);

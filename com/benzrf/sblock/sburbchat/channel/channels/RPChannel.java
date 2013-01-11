@@ -4,11 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
+import com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel;
 
 public class RPChannel extends NickChannel
 {
@@ -18,9 +18,12 @@ public class RPChannel extends NickChannel
 		super(name, listeningAccess, sendingAccess, creator);
 	}
 	
+
+	
 	@Override
-	public void setChat(AsyncPlayerChatEvent event, User sender)
+	public void setChat(String m, User sender)
 	{
+		String msg = ChatColor.stripColor(m); //Always remove colors!
 		if (this.muteList.contains(sender.getName()))
 		{
 			sender.sendMessage(ChatColor.RED + "You are muted in channel " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
@@ -54,7 +57,6 @@ public class RPChannel extends NickChannel
 				return;
 			}
 		}
-		String msg = event.getMessage();
 		msg = sender.hasPermission("sburbchat.chatcolor") ? msg.replaceAll("&([0-9a-fk-or])", ChatColor.COLOR_CHAR + "$1") : msg;
 		this.sendToAll(this.getChatPrefix(sender, msg) + ((msg.startsWith("\\#") || msg.startsWith("#")) ? canonNicks.get(this.nickMap.get(sender.getName())).applyColor(msg.substring(1)) : canonNicks.get(this.nickMap.get(sender.getName())).apply(msg)));
 	}
@@ -87,6 +89,13 @@ public class RPChannel extends NickChannel
 	{
 		return ChannelType.RP;
 	}
+	
+	@Override
+	public void setColorAccess(PrivilegeLevel level, User user)
+	{
+		user.sendMessageFromChannel(ChatColor.RED + "Roleplay channels never allow color changes!", this);
+	}
+	
 	
 	static Map<String, Quirker> canonNicks = new HashMap<String, Quirker>();
 	static
@@ -161,6 +170,7 @@ class Quirker
 }
 abstract class Quirkf
 {
+	
 	abstract String apply(String msg);
 	
 	/**
