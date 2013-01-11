@@ -198,7 +198,9 @@ public class NormalChannel implements Channel, Serializable
 		case NONE:
 			msg = ChatColor.stripColor(msg);
 		}
-		this.sendToAll(this.getChatPrefix(sender, msg) + ((msg.startsWith("\\#") || msg.startsWith("#")) ? msg.substring(1) : msg));
+		msg = ((msg.startsWith("\\#") || msg.startsWith("#")) ? msg.substring(1) : msg);
+		msg = ((msg.startsWith("\\@") || msg.startsWith("@")) ? msg.substring(1) : msg);
+		this.sendToAll(this.getChatPrefix(sender, msg) + msg);
 	}
 	
 	@Override
@@ -496,12 +498,10 @@ public class NormalChannel implements Channel, Serializable
 		Logger.getLogger("Minecraft").info(ChatColor.stripColor(this.getPrefix() + s));
 	}
 	
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
-	{
-		in.defaultReadObject();
-		this.listening = new HashSet<User>();
-		SburbChat.getInstance().getChannelManager().registerChannel(this);
-	}
+	@Override
+	public void makeSerializable(){}
+	@Override
+	public void makeUsable(){}
 	
 	@Override
 	public ChannelType getType()

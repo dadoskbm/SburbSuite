@@ -50,11 +50,15 @@ public interface Channel
 	public void deapproveUser(User user, User sender);
 	
 	public void disband(User sender);
-
+	
 	/**
 	 * Sets who is allowed to use chat colors in this channel
 	 * @param level Access level to use.
 	 * @author FireNG
 	 */
 	public void setColorAccess(PrivilegeLevel level, User user);
+	
+	public void makeSerializable();
+	public void makeUsable();
 }
+

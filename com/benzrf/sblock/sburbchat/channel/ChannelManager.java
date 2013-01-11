@@ -135,6 +135,7 @@ public class ChannelManager
 		this.cMap.remove("#");
 		for (Channel c : this.cMap.values())
 		{
+			c.makeSerializable();
 			w = new BufferedWriter(new FileWriter(path + "c_" + c.getName() + ".scd"));
 			w.write(this.gson.toJson(c));
 			w.flush();
@@ -153,7 +154,9 @@ public class ChannelManager
 		HashMap<String, String> cm = this.gson.fromJson(this.readFile(path + list), HashMap.class);
 		for (String c : cm.keySet())
 		{
-			this.registerChannel((Channel) this.gson.fromJson(this.readFile(path + "c_" + c + ".scd"), ChannelType.valueOf(cm.get(c)).getType()));
+			Channel ch = (Channel) this.gson.fromJson(this.readFile(path + "c_" + c + ".scd"), ChannelType.valueOf(cm.get(c)).getType());
+			ch.makeUsable();
+			this.registerChannel(ch);
 		}
 	}
 	
