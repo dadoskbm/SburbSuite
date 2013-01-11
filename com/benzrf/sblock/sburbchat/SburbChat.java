@@ -129,7 +129,7 @@ public class SburbChat extends JavaPlugin
 		new ExecutableCommandNode("remove", root, "removeListening", CHANNEL);
 		new ExecutableCommandNode("m", root, "toggleMute");
 		new ExecutableCommandNode("mute", root, "toggleMute");
-		new ExecutableCommandNode("msg", root, "sendOnce", CHANNEL, MESSAGE);
+		//new ExecutableCommandNode("msg", root, "sendOnce", CHANNEL, MESSAGE);
 		new ExecutableCommandNode("w", root, "listUsers");
 		new ExecutableCommandNode("who", root, "listUsers");
 		new ExecutableCommandNode("ch", root, "listChannels");

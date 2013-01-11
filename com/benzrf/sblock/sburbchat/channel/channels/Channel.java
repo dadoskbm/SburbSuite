@@ -12,6 +12,8 @@ public interface Channel
 	public String getName();
 	public String getPrefix();
 	public String getChatPrefix(User sender, String message);
+	public String getJoinChatMessage(User sender);
+	public String getLeaveChatMessage(User sender);
 	public AccessLevel getSAcess();
 	public AccessLevel getLAcess();
 	public Set<User> getUsers();

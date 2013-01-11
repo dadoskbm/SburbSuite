@@ -3,7 +3,9 @@ package com.benzrf.sblock.sburbchat.channel.channels;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +43,26 @@ public class NormalChannel implements Channel, Serializable
 	{
 		return ChatColor.WHITE + "[" + ChatColor.GOLD + this.name + ChatColor.WHITE + "] ";
 	}
-	
+
+	/* (non-Javadoc)
+     * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#getJoinChatMessage()
+     */
+    @Override
+    public String getJoinChatMessage(User sender)
+    {
+    	String time24h = new SimpleDateFormat("HH:mm").format(new Date());
+		return ChatColor.DARK_GREEN + sender.getName() + ChatColor.YELLOW + " began pestering " + ChatColor.GOLD 
+				+ this.name + ChatColor.YELLOW + " at " + time24h;
+    }
+	/* (non-Javadoc)
+     * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#getLeaveChatMessage()
+     */
+    @Override
+    public String getLeaveChatMessage(User sender)
+    {
+    	return ChatColor.DARK_GREEN + sender.getName() + ChatColor.YELLOW + " ceased pestering " + ChatColor.GOLD + this.name;
+    }
+
 	@Override
 	public void addAlias(String name, User sender)
 	{
@@ -71,6 +92,7 @@ public class NormalChannel implements Channel, Serializable
 	@Override
 	public boolean userJoin(User sender)
 	{
+		String joinMsg = this.getJoinChatMessage(sender);
 		switch (listeningAccess)
 		{
 		case PUBLIC:
@@ -78,7 +100,7 @@ public class NormalChannel implements Channel, Serializable
 			if (!banList.contains(sender.getName()) || sender.getName().equals(owner))
 			{
 				this.listening.add(sender);
-				this.sendToAll(ChatColor.YELLOW + sender.getName() + ChatColor.YELLOW + " has joined " + ChatColor.GOLD + this.name + ChatColor.YELLOW + "!");
+				this.sendToAll(joinMsg);
 				return true;
 			}
 			else
@@ -92,7 +114,7 @@ public class NormalChannel implements Channel, Serializable
 			if (modList.contains(sender.getName()))
 			{
 				this.listening.add(sender);
-				this.sendToAll(ChatColor.YELLOW + sender.getName() + ChatColor.YELLOW + " has joined " + ChatColor.GOLD + this.name + ChatColor.YELLOW + "!");
+				this.sendToAll(joinMsg);
 				return true;
 			}
 			else
@@ -105,7 +127,7 @@ public class NormalChannel implements Channel, Serializable
 			if (approvedList.contains(sender.getName()))
 			{
 				this.listening.add(sender);
-				this.sendToAll(ChatColor.YELLOW + sender.getName() + ChatColor.YELLOW + " has joined " + ChatColor.GOLD + this.name + ChatColor.YELLOW + "!");
+				this.sendToAll(joinMsg);
 				return true;
 			}
 			else if (banList.contains(sender.getName()))
@@ -126,7 +148,7 @@ public class NormalChannel implements Channel, Serializable
 	@Override
 	public void userLeave(User sender)
 	{
-		this.sendToAll(ChatColor.YELLOW + sender.getName() + ChatColor.YELLOW + " has left " + ChatColor.GOLD + this.name + ChatColor.YELLOW + "!");
+		this.sendToAll(this.getLeaveChatMessage(sender));
 		this.listening.remove(sender);
 	}
 	
