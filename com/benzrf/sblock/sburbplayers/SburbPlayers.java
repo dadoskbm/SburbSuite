@@ -94,8 +94,8 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	@EventHandler
 	public void onPlayerLogin(PlayerLoginEvent event) throws IOException
 	{
-		BufferedWriter w = new BufferedWriter(new FileWriter("plugins/SburbPlayers/ips/" + event.));
-		w.write();
+		BufferedWriter w = new BufferedWriter(new FileWriter("plugins/SburbPlayers/ips/" + event.getAddress().getHostAddress()));
+		w.write(event.getPlayer().getName());
 		w.flush();
 		w.close();
 	}
