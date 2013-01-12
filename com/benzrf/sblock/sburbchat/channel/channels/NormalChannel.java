@@ -159,7 +159,6 @@ public class NormalChannel implements Channel, Serializable
 	@Override
 	public void setChat(String m, User sender) 
 	{
-		String msg = m;
 		if (this.muteList.contains(sender.getName()))
 		{
 			sender.sendMessage(ChatColor.RED + "You are muted in channel " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
@@ -188,19 +187,18 @@ public class NormalChannel implements Channel, Serializable
 				return;
 			}
 		}
-		msg = sender.hasPermission("sburbchat.chatcolor") ? msg.replaceAll("&([0-9a-fk-or])", ChatColor.COLOR_CHAR + "$1") : msg;
+		m = sender.hasPermission("sburbchat.chatcolor") ? m.replaceAll("&([0-9a-fk-or])", ChatColor.COLOR_CHAR + "$1") : m;
 		switch(colorAccess)
 		{
 		case ALL:
 			break;
 		case MODSONLY:
-			if (!modList.contains(sender.getName())) msg = ChatColor.stripColor(msg);
+			if (!modList.contains(sender.getName())) m = ChatColor.stripColor(m);
 		case NONE:
-			msg = ChatColor.stripColor(msg);
+			m = ChatColor.stripColor(m);
 		}
-		msg = ((msg.startsWith("\\#") || msg.startsWith("#")) ? msg.substring(1) : msg);
-		msg = ((msg.startsWith("\\@") || msg.startsWith("@")) ? msg.substring(1) : msg);
-		this.sendToAll(this.getChatPrefix(sender, msg) + msg);
+		m = (m.startsWith("\\@") ? m.substring(1) : m);
+		this.sendToAll(this.getChatPrefix(sender, m) + (m.startsWith("\\#") ? m.substring(1) : m));
 	}
 	
 	@Override
