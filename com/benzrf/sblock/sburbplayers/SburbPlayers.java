@@ -102,6 +102,10 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			event.getPlayer().setAllowFlight(true);
 		}
+		BufferedWriter w = new BufferedWriter(new FileWriter("plugins/SburbPlayers/ips/" + event.getPlayer().getAddress().getAddress().getHostAddress()));
+		w.write(event.getPlayer().getName());
+		w.flush();
+		w.close();
 	}
 	private void readPlayer(Player p) throws IOException, ClassNotFoundException
 	{
@@ -141,6 +145,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	public void onPlayerQuit(PlayerQuitEvent event) throws IOException
 	{
 		writePlayer(event.getPlayer());
+		new File("plugins/SburbPlayers/ips/" + event.getPlayer().getAddress().getAddress().getHostAddress()).delete();
 	}
 	private void writePlayer(Player p) throws IOException
 	{
