@@ -457,16 +457,17 @@ public class NormalChannel implements Channel, Serializable
      * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#setColorAccess(com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel, com.benzrf.sblock.sburbchat.User)
      */
     @Override
-    public void setColorAccess(PrivilegeLevel level, User user)
+    public void setColorAccess(PrivilegeLevel level, User sender)
     {
-    	if(modList.contains(user.getName()))
+    	if(modList.contains(sender.getName()))
     	{
     		this.colorAccess = level;
-    		this.sendToAll(ChatColor.GOLD + "Chat colors are now permitted for " + ChatColor.AQUA + level.group() + ChatColor.GOLD + ".");
-    		user.sendMessageFromChannel(ChatColor.GREEN + "Action successful", this);
+    		this.sendToAll(ChatColor.GREEN + "Chat colors are now permitted for " + ChatColor.AQUA + level.group() + ChatColor.GREEN + ".");
     	}
     	else
-    		user.sendMessageFromChannel(ChatColor.RED + "You do not have permission to do this in " + ChatColor.GOLD + this.name, this);
+	{
+		sender.sendMessage(ChatColor.RED + "You do not have permission to change color permissions in " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
+	}
     	
     }
 	@Override
