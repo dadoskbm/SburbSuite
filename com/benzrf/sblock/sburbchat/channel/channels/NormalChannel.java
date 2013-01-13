@@ -60,7 +60,7 @@ public class NormalChannel implements Channel, Serializable
     @Override
     public String getLeaveChatMessage(User sender)
     {
-    	return ChatColor.DARK_GREEN + sender.getName() + ChatColor.YELLOW + " ceased pestering " + ChatColor.GOLD + this.name;
+	    return this.getJoinChatMessage(sender).replaceAll("began", "ceased");
     }
 
 	@Override
