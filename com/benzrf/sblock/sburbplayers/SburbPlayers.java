@@ -25,7 +25,6 @@ import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.yaml.snakeyaml.Yaml;
@@ -92,15 +91,6 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	}
 	
 	@EventHandler
-	public void onPlayerLogin(PlayerLoginEvent event) throws IOException
-	{
-		BufferedWriter w = new BufferedWriter(new FileWriter("plugins/SburbPlayers/ips/" + event.getAddress().getHostAddress()));
-		w.write(event.getPlayer().getName());
-		w.flush();
-		w.close();
-	}
-	
-	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) throws IOException, ClassNotFoundException
 	{
 		readPlayer(event.getPlayer());
@@ -112,6 +102,10 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			event.getPlayer().setAllowFlight(true);
 		}
+		BufferedWriter w = new BufferedWriter(new FileWriter("plugins/SburbPlayers/ips/" + event.getPlayer().getAddress().getAddress().getHostAddress()));
+		w.write(event.getPlayer().getName());
+		w.flush();
+		w.close();
 	}
 	private void readPlayer(Player p) throws IOException, ClassNotFoundException
 	{
@@ -151,6 +145,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	public void onPlayerQuit(PlayerQuitEvent event) throws IOException
 	{
 		writePlayer(event.getPlayer());
+		new File("plugins/SburbPlayers/ips/" + event.getPlayer().getAddress().getAddress().getHostAddress()).delete();
 	}
 	private void writePlayer(Player p) throws IOException
 	{
