@@ -119,7 +119,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			}
 			else
 			{
-				this.players.put(p.getName(), new SburbPlayer(p, SClass.Heir, Aspect.Breath, MPlanet.LOWAS, CPlanet.Prospit, Integer.toString(new Random().nextInt(5))));
+				this.players.put(p.getName(), new SburbPlayer(p, SClass.Heir, Aspect.Breath, MPlanet.LOWAS, CPlanet.Prospit, Integer.toString(new Random().nextInt(4))));
 			}
 		}
 	}
