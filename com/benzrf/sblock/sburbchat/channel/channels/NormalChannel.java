@@ -198,7 +198,7 @@ public class NormalChannel implements Channel, Serializable
 			m = ChatColor.stripColor(m);
 		}
 		m = (m.startsWith("\\@") ? m.substring(1) : m);
-		this.sendToAll(this.getChatPrefix(sender, m) + (m.startsWith("\\#") ? m.substring(1) : m));
+		this.sendToAll(this.getChatPrefix(sender, m) + ((m.startsWith("\\#") || m.startsWith("#")) ? m.substring(1) : m));
 	}
 	
 	@Override

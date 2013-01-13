@@ -107,7 +107,7 @@ public class RPChannel extends NickChannel
 		m = sender.hasPermission("sburbchat.chatcolor") ? m.replaceAll("&([0-9a-fk-or])", "") : m;
 		m = (m.startsWith("\\@") ? m.substring(1) : m);
 		Quirker q = canonNicks.get(this.nickMap.get(sender.getName()));
-		this.sendToAll(this.getChatPrefix(sender, m) + (m.startsWith("\\#") ? q.applyColor(m.substring(1)) : q.apply(m)));
+		this.sendToAll(this.getChatPrefix(sender, m) + (m.startsWith("\\#") ? q.apply(m.substring(1)) : (m.startsWith("#") ? q.applyColor(m.substring(1)) : q.apply(m.substring(1)))));
 	}
 	
 	@Override
