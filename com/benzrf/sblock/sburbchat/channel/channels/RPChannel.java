@@ -55,7 +55,6 @@ public class RPChannel extends NickChannel
 			return super.getJoinChatMessage(sender);
 		}
     }
-<<<<<<< HEAD
 	/* (non-Javadoc)
      * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#getLeaveChatMessage()
      */
@@ -68,8 +67,6 @@ public class RPChannel extends NickChannel
     	else
     		return super.getLeaveChatMessage(sender);
     }
-=======
->>>>>>> upstream/master
 
 	@Override
 	public void setChat(String m, User sender)
