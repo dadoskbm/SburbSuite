@@ -61,11 +61,7 @@ public class RPChannel extends NickChannel
     @Override
     public String getLeaveChatMessage(User sender)
     {
-    	String nick = nickMap.get(sender.getName());
-    	if(nick != null)
-    		return ChatColor.YELLOW + sender.getName() + ChatColor.YELLOW + " ceased " + getChatVerb(ChatColor.stripColor(nick)) + "ing " + ChatColor.GOLD + this.name;
-    	else
-    		return super.getLeaveChatMessage(sender);
+	    return this.getJoinChatMessage(sender).replaceAll("began", "ceased");
     }
 
 	@Override
