@@ -58,15 +58,6 @@ public class RPChannel extends NickChannel
 	/* (non-Javadoc)
      * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#getLeaveChatMessage()
      */
-    @Override
-    public String getLeaveChatMessage(User sender)
-    {
-    	String nick = nickMap.get(sender.getName());
-    	if(nick != null)
-    		return ChatColor.YELLOW + nick + ChatColor.YELLOW + " ceased " + getChatVerb(ChatColor.stripColor(nick)) + "ing " + ChatColor.GOLD + this.name;
-    	else
-    		return super.getLeaveChatMessage(sender);
-    }
 
 	@Override
 	public void setChat(String m, User sender)
