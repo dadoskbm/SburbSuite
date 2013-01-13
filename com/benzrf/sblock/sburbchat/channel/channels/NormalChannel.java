@@ -60,7 +60,7 @@ public class NormalChannel implements Channel, Serializable
     @Override
     public String getLeaveChatMessage(User sender)
     {
-    	return ChatColor.DARK_GREEN + sender.getName() + ChatColor.YELLOW + " ceased pestering " + ChatColor.GOLD + this.name;
+	    return this.getJoinChatMessage(sender).replaceAll("began", "ceased");
     }
 
 	@Override
@@ -159,7 +159,6 @@ public class NormalChannel implements Channel, Serializable
 	@Override
 	public void setChat(String m, User sender) 
 	{
-		String msg = m;
 		if (this.muteList.contains(sender.getName()))
 		{
 			sender.sendMessage(ChatColor.RED + "You are muted in channel " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
@@ -188,19 +187,18 @@ public class NormalChannel implements Channel, Serializable
 				return;
 			}
 		}
-		msg = sender.hasPermission("sburbchat.chatcolor") ? msg.replaceAll("&([0-9a-fk-or])", ChatColor.COLOR_CHAR + "$1") : msg;
+		m = sender.hasPermission("sburbchat.chatcolor") ? m.replaceAll("&([0-9a-fk-or])", ChatColor.COLOR_CHAR + "$1") : m;
 		switch(colorAccess)
 		{
 		case ALL:
 			break;
 		case MODSONLY:
-			if (!modList.contains(sender.getName())) msg = ChatColor.stripColor(msg);
+			if (!modList.contains(sender.getName())) m = ChatColor.stripColor(m);
 		case NONE:
-			msg = ChatColor.stripColor(msg);
+			m = ChatColor.stripColor(m);
 		}
-		msg = ((msg.startsWith("\\#") || msg.startsWith("#")) ? msg.substring(1) : msg);
-		msg = ((msg.startsWith("\\@") || msg.startsWith("@")) ? msg.substring(1) : msg);
-		this.sendToAll(this.getChatPrefix(sender, msg) + msg);
+		m = (m.startsWith("\\@") ? m.substring(1) : m);
+		this.sendToAll(this.getChatPrefix(sender, m) + ((m.startsWith("\\#") || m.startsWith("#")) ? m.substring(1) : m));
 	}
 	
 	@Override
@@ -459,16 +457,17 @@ public class NormalChannel implements Channel, Serializable
      * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#setColorAccess(com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel, com.benzrf.sblock.sburbchat.User)
      */
     @Override
-    public void setColorAccess(PrivilegeLevel level, User user)
+    public void setColorAccess(PrivilegeLevel level, User sender)
     {
-    	if(modList.contains(user.getName()))
+    	if(modList.contains(sender.getName()))
     	{
     		this.colorAccess = level;
-    		this.sendToAll(ChatColor.GOLD + "Chat colors are now permitted for " + ChatColor.AQUA + level.group() + ChatColor.GOLD + ".");
-    		user.sendMessageFromChannel(ChatColor.GREEN + "Action successful", this);
+    		this.sendToAll(ChatColor.GREEN + "Chat colors are now permitted for " + ChatColor.AQUA + level.group() + ChatColor.GREEN + ".");
     	}
     	else
-    		user.sendMessageFromChannel(ChatColor.RED + "You do not have permission to do this in " + ChatColor.GOLD + this.name, this);
+	{
+		sender.sendMessage(ChatColor.RED + "You do not have permission to change color permissions in " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
+	}
     	
     }
 	@Override

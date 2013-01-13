@@ -129,8 +129,6 @@ public class SburbChat extends JavaPlugin
 		new ExecutableCommandNode("remove", root, "removeListening", CHANNEL);
 		new ExecutableCommandNode("m", root, "toggleMute");
 		new ExecutableCommandNode("mute", root, "toggleMute");
-		new ExecutableCommandNode("w", root, "listUsers");
-		new ExecutableCommandNode("who", root, "listUsers");
 		
 		CommandNode alias = new CommandNode("alias", root);
 		new ExecutableCommandNode("new", alias, "addAlias", ALIAS);
@@ -161,6 +159,8 @@ public class SburbChat extends JavaPlugin
 		new ExecutableCommandNode("listening", info, "getListeningChannels");
 		new ExecutableCommandNode("ch", info, "listChannels");
 		new ExecutableCommandNode("channels", info, "listChannels");
+		new ExecutableCommandNode("w", root, "listUsers");
+		new ExecutableCommandNode("who", root, "listUsers");
 		
 		return root;
 	}
