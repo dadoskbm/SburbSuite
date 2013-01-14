@@ -26,6 +26,8 @@ import com.benzrf.sblock.sburbmachines.machines.Cruxtruder;
 import com.benzrf.sblock.sburbmachines.machines.Machine;
 import com.benzrf.sblock.sburbmachines.machines.Transmaterializer;
 import com.google.gson.Gson;
+import com.griefcraft.lwc.LWC;
+import com.griefcraft.lwc.LWCPlugin;
 
 public class SburbMachines extends JavaPlugin
 {
@@ -164,5 +166,6 @@ public class SburbMachines extends JavaPlugin
 	protected Set<Machine> smachines = new HashSet<Machine>();
 	private SburbMachinesListener listener;
 	private Gson gson = new Gson();
+	public LWC lwc = ((LWCPlugin) this.getServer().getPluginManager().getPlugin("LWC")).getLWC();
 	public static SburbMachines instance;
 }
