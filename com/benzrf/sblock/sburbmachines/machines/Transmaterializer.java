@@ -19,7 +19,6 @@ import org.bukkit.util.Vector;
 
 import com.benzrf.sblock.sburbmachines.SburbMachines;
 
-
 public class Transmaterializer extends Machine
 {
 	public Transmaterializer(){};
@@ -120,39 +119,73 @@ public class Transmaterializer extends Machine
 						int ocost = (int) Math.ceil(this.base.distance(target) / 200) + 1;
 						if (Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), Transmaterializer.button1))
 						{
-							Arrow a = this.base.getWorld().spawnArrow(base.clone().add(0.5, 1, 0.5), new Vector(), 0, 0);
-							for (Entity e : a.getNearbyEntities(1, 1, 1))
+							if (base.clone().add(0, 1, 0).getBlock().getType().equals(Material.CHEST) && SburbMachines.instance.lwc.canAccessProtection(p, SburbMachines.instance.lwc.findProtection(base.clone().add(0, 1, 0).getBlock())))
 							{
-								if (e instanceof Item && this.fuel > (icost - 1))
+								Inventory inv = ((Chest) base.clone().add(0, 1, 0).getBlock().getState()).getInventory();
+								for (int i = 0; i < inv.getContents().length; i++)
 								{
-									this.fuel -= icost;
-									e.teleport(target);
-								}
-								else if (this.fuel > (ocost - 1))
-								{
-									this.fuel -= ocost;
-									e.teleport(target);
+									ItemStack is = inv.getContents()[i];
+									if (is != null && (this.fuel > ((icost - 1) * is.getAmount())))
+									{
+										this.fuel -= icost;
+										inv.clear(i);
+										this.base.getWorld().dropItem(target, is);
+									}
 								}
 							}
-							a.remove();
+							else
+							{
+								Arrow a = this.base.getWorld().spawnArrow(base.clone().add(0.5, 1, 0.5), new Vector(), 0, 0);
+								for (Entity e : a.getNearbyEntities(1, 1, 1))
+								{
+									if (e instanceof Item && this.fuel > (icost - 1))
+									{
+										this.fuel -= icost;
+										e.teleport(target);
+									}
+									else if (this.fuel > (ocost - 1))
+									{
+										this.fuel -= ocost;
+										e.teleport(target);
+									}
+								}
+								a.remove();
+							}
 						}
 						else
 						{
-							Arrow a = this.base.getWorld().spawnArrow(target, new Vector(), 0, 0);
-							for (Entity e : a.getNearbyEntities(5, 5, 5))
+							if (target.getBlock().getType().equals(Material.CHEST) && SburbMachines.instance.lwc.canAccessProtection(p, SburbMachines.instance.lwc.findProtection(target.getBlock())))
 							{
-								if (e instanceof Item && this.fuel > (icost - 1))
+								Inventory inv = ((Chest) target.getBlock().getState()).getInventory();
+								for (int i = 0; i < inv.getContents().length; i++)
 								{
-									this.fuel -= icost;
-									e.teleport(base.clone().add(0.5, 1, 0.5));
-								}
-								else if (this.fuel > (ocost - 1))
-								{
-									this.fuel -= ocost;
-									e.teleport(base.clone().add(0.5, 1, 0.5));
+									ItemStack is = inv.getContents()[i];
+									if (is != null && (this.fuel > ((icost - 1) * is.getAmount())))
+									{
+										this.fuel -= icost;
+										inv.clear(i);
+										this.base.getWorld().dropItem(base.clone().add(0, 1, 0), is);
+									}
 								}
 							}
-							a.remove();
+							else
+							{
+								Arrow a = this.base.getWorld().spawnArrow(target, new Vector(), 0, 0);
+								for (Entity e : a.getNearbyEntities(5, 5, 5))
+								{
+									if (e instanceof Item && this.fuel > (icost - 1))
+									{
+										this.fuel -= icost;
+										e.teleport(base.clone().add(0.5, 1, 0.5));
+									}
+									else if (this.fuel > (ocost - 1))
+									{
+										this.fuel -= ocost;
+										e.teleport(base.clone().add(0.5, 1, 0.5));
+									}
+								}
+								a.remove();
+							}
 						}
 						this.updateWool();
 					}

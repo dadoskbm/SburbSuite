@@ -73,3 +73,4 @@ public class NickChannel extends NormalChannel
 	
 	private static final long serialVersionUID = -6365694572913986352L;
 }
+
