@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -139,7 +140,7 @@ public class Transmaterializer extends Machine
 						}
 						else
 						{
-							es = this.getFromLoc(target, cost, icost);
+							es = this.getFromLoc(from, cost, icost);
 						}
 						if (to.getBlock().getType().equals(Material.CHEST) && SburbMachines.instance.lwc.canAccessProtection(p, SburbMachines.instance.lwc.findProtection(to.getBlock())))
 						{
@@ -153,6 +154,10 @@ public class Transmaterializer extends Machine
 					}
 				}
 			}
+			else if (this.isBlock(b, Transmaterializer.wool) && p.getItemInHand() != null && p.getItemInHand().getType().equals(Material.COMPASS))
+			{
+				p.sendMessage("[" + ChatColor.GREEN + "Sburb" + ChatColor.GRAY + "Machines" + ChatColor.WHITE + "] " + ChatColor.GOLD + this.fuel + ChatColor.GREEN + " remaining!");
+			}
 		}
 		catch (NumberFormatException e){}
 		return false;
@@ -162,9 +167,20 @@ public class Transmaterializer extends Machine
 		Arrow a = this.base.getWorld().spawnArrow(base.clone().add(0.5, 1, 0.5), new Vector(), 0, 0);
 		List<Callable<Entity>> es = new ArrayList<Callable<Entity>>();
 		int lfuel = this.fuel;
-		for (Entity e : a.getNearbyEntities(1, 1, 1))
+		for (Entity e : a.getNearbyEntities(1.5, 1.5, 1.5))
 		{
-			if ((e instanceof Item && ((lfuel -= icost) > 0)) || ((lfuel -= cost) > 0))
+			if ((e instanceof Item && ((lfuel -= icost) > 0)))
+			{
+				final Entity fe = e;
+				es.add(new Callable<Entity>() {
+					@Override
+					public Entity call()
+					{
+						return fe;
+					}
+				});
+			}
+			else if ((lfuel -= cost) > 0)
 			{
 				final Entity fe = e;
 				es.add(new Callable<Entity>() {
