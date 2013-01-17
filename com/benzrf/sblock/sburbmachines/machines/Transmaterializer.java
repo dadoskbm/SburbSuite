@@ -1,9 +1,13 @@
 package com.benzrf.sblock.sburbmachines.machines;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -116,84 +120,160 @@ public class Transmaterializer extends Machine
 					if (this.base.distance(target) < 1000)
 					{
 						int icost = (int) Math.ceil(this.base.distance(target) / 200);
-						int ocost = (int) Math.ceil(this.base.distance(target) / 200) + 1;
+						int cost = (int) Math.ceil(this.base.distance(target) / 200) + 1;
+						Location from;
+						Location to;
+						List<Callable<Entity>> es;
 						if (Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), Transmaterializer.button1))
 						{
-							if (base.clone().add(0, 1, 0).getBlock().getType().equals(Material.CHEST) && SburbMachines.instance.lwc.canAccessProtection(p, SburbMachines.instance.lwc.findProtection(base.clone().add(0, 1, 0).getBlock())))
-							{
-								Inventory inv = ((Chest) base.clone().add(0, 1, 0).getBlock().getState()).getInventory();
-								for (int i = 0; i < inv.getContents().length; i++)
-								{
-									ItemStack is = inv.getContents()[i];
-									if (is != null && (this.fuel > ((icost - 1) * is.getAmount())))
-									{
-										this.fuel -= icost;
-										inv.clear(i);
-										this.base.getWorld().dropItem(target, is);
-									}
-								}
-							}
-							else
-							{
-								Arrow a = this.base.getWorld().spawnArrow(base.clone().add(0.5, 1, 0.5), new Vector(), 0, 0);
-								for (Entity e : a.getNearbyEntities(1, 1, 1))
-								{
-									if (e instanceof Item && this.fuel > (icost - 1))
-									{
-										this.fuel -= icost;
-										e.teleport(target);
-									}
-									else if (this.fuel > (ocost - 1))
-									{
-										this.fuel -= ocost;
-										e.teleport(target);
-									}
-								}
-								a.remove();
-							}
+							to = this.base.clone().add(0, 1, 0);
+							from = target;
 						}
 						else
 						{
-							if (target.getBlock().getType().equals(Material.CHEST) && SburbMachines.instance.lwc.canAccessProtection(p, SburbMachines.instance.lwc.findProtection(target.getBlock())))
-							{
-								Inventory inv = ((Chest) target.getBlock().getState()).getInventory();
-								for (int i = 0; i < inv.getContents().length; i++)
-								{
-									ItemStack is = inv.getContents()[i];
-									if (is != null && (this.fuel > ((icost - 1) * is.getAmount())))
-									{
-										this.fuel -= icost;
-										inv.clear(i);
-										this.base.getWorld().dropItem(base.clone().add(0, 1, 0), is);
-									}
-								}
-							}
-							else
-							{
-								Arrow a = this.base.getWorld().spawnArrow(target, new Vector(), 0, 0);
-								for (Entity e : a.getNearbyEntities(5, 5, 5))
-								{
-									if (e instanceof Item && this.fuel > (icost - 1))
-									{
-										this.fuel -= icost;
-										e.teleport(base.clone().add(0.5, 1, 0.5));
-									}
-									else if (this.fuel > (ocost - 1))
-									{
-										this.fuel -= ocost;
-										e.teleport(base.clone().add(0.5, 1, 0.5));
-									}
-								}
-								a.remove();
-							}
+							from = this.base.clone().add(0, 1, 0);
+							to = target;
+						}
+						if (from.getBlock().getType().equals(Material.CHEST) && SburbMachines.instance.lwc.canAccessProtection(p, SburbMachines.instance.lwc.findProtection(from.getBlock())))
+						{
+							es = this.getFromChest(from, cost, icost);
+						}
+						else
+						{
+							es = this.getFromLoc(from, cost, icost);
+						}
+						if (to.getBlock().getType().equals(Material.CHEST) && SburbMachines.instance.lwc.canAccessProtection(p, SburbMachines.instance.lwc.findProtection(to.getBlock())))
+						{
+							this.sendToChest(es, to, cost, icost);
+						}
+						else
+						{
+							this.sendToLoc(es, to, cost, icost);
 						}
 						this.updateWool();
 					}
 				}
 			}
+			else if (this.isBlock(b, Transmaterializer.wool) && p.getItemInHand() != null && p.getItemInHand().getType().equals(Material.COMPASS))
+			{
+				p.sendMessage("[" + ChatColor.GREEN + "Sburb" + ChatColor.GRAY + "Machines" + ChatColor.WHITE + "] " + ChatColor.GOLD + this.fuel + ChatColor.GREEN + " remaining!");
+			}
 		}
 		catch (NumberFormatException e){}
 		return false;
+	}
+	private List<Callable<Entity>> getFromLoc(Location l, int cost, int icost)
+	{
+		Arrow a = this.base.getWorld().spawnArrow(base.clone().add(0.5, 1, 0.5), new Vector(), 0, 0);
+		List<Callable<Entity>> es = new ArrayList<Callable<Entity>>();
+		int lfuel = this.fuel;
+		for (Entity e : a.getNearbyEntities(1.5, 1.5, 1.5))
+		{
+			if ((e instanceof Item && ((lfuel -= icost) > 0)))
+			{
+				final Entity fe = e;
+				es.add(new Callable<Entity>() {
+					@Override
+					public Entity call()
+					{
+						return fe;
+					}
+				});
+			}
+			else if ((lfuel -= cost) > 0)
+			{
+				final Entity fe = e;
+				es.add(new Callable<Entity>() {
+					@Override
+					public Entity call()
+					{
+						return fe;
+					}
+				});
+			}
+			else
+			{
+				a.remove();
+				return es;
+			}
+		}
+		a.remove();
+		return es;
+	}
+	private List<Callable<Entity>> getFromChest(Location l, int cost, int icost)
+	{
+		final Inventory inv = ((Chest) l.getBlock().getState()).getBlockInventory();
+		List<Callable<Entity>> es = new ArrayList<Callable<Entity>>();
+		int lfuel = this.fuel;
+		for (int i = 0; i < inv.getContents().length; i++)
+		{
+			ItemStack is = inv.getContents()[i];
+			if (is != null && ((lfuel -= icost) > 0))
+			{
+				final ItemStack fis = is;
+				final int fi = i;
+				es.add(new Callable<Entity>(){
+					@Override
+					public Entity call()
+					{
+						inv.clear(fi);
+						return Transmaterializer.this.base.getWorld().dropItem(base.clone().add(0, 1, 0), fis);
+					}
+				});
+			}
+			else if (is != null)
+			{
+				return es;
+			}
+		}
+		return es;
+	}
+	private void sendToLoc(List<Callable<Entity>> es, Location l, int cost, int icost)
+	{
+		for (Callable<Entity> ec : es)
+		{
+			try
+			{
+				Entity e = ec.call();
+				if (e instanceof Item)
+				{
+					this.fuel -= icost;
+					e.teleport(l);
+				}
+			}
+			catch (Exception ex)
+			{
+				ex.printStackTrace();
+			}
+		}
+	}
+	private void sendToChest(List<Callable<Entity>> es, Location l, int cost, int icost)
+	{
+		Inventory inv = ((Chest) l.getBlock().getState()).getInventory();
+		for (int i = 0; i < inv.getContents().length; i++)
+		{
+			if (inv.getItem(i) == null)
+			{
+				Entity e;
+				try
+				{
+					e = es.remove(0).call();
+					if (e instanceof Item)
+					{
+						inv.setItem(i, ((Item) e).getItemStack());
+						e.remove();
+					}
+				}
+				catch (IndexOutOfBoundsException ex)
+				{
+					return;
+				}
+				catch (Exception ex)
+				{
+					ex.printStackTrace();
+				}
+			}
+		}
 	}
 	
 	private boolean isBlock(Block b, int[] a)

@@ -122,7 +122,7 @@ public class User
 	{
 		if (!this.isMute || c.equals(this.current))
 		{
-			if (ChatColor.stripColor(s).indexOf(this.getName()) > 3)
+			if (ChatColor.stripColor(s).toLowerCase().indexOf(this.getName().toLowerCase()) > 3)
 			{
 				this.pthis.sendMessage(c.getPrefix() + ChatColor.BLUE + "{!} " + ChatColor.WHITE + s);
 				// this.pthis.sendBlockChange(this.pthis.getLocation().add(0, 2, 0), Material.NOTE_BLOCK, (byte) 0);

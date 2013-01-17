@@ -74,7 +74,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			try
 			{
 				readPlayer(p);
-				if (p.getWorld().getName().equals("Prospit") || p.getWorld().getName().equals("Derse"))
+				if (p.getWorld().getName().equals("InnerCircle") || p.getWorld().getName().equals("OuterCircle"))
 				{
 					p.setAllowFlight(true);
 				}
@@ -98,7 +98,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			((CraftPlayer) event.getPlayer()).getHandle().a(this.tpacks.get(event.getPlayer().getWorld().getName()), 16);
 		}
-		if (event.getPlayer().getWorld().getName().equals("Prospit") || event.getPlayer().getWorld().getName().equals("Derse"))
+		if (event.getPlayer().getWorld().getName().equals("InnerCircle") || event.getPlayer().getWorld().getName().equals("OuterCircle"))
 		{
 			event.getPlayer().setAllowFlight(true);
 		}
@@ -176,7 +176,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 							{
 								sp.inBed = false;
 								((CraftPlayer) sp.player).getHandle().a(false, true, false);
-								if (sp.player.getWorld().getName().equals("Prospit") || sp.player.getWorld().getName().equals("Derse"))
+								if (sp.player.getWorld().getName().equals("InnerCircle") || sp.player.getWorld().getName().equals("OuterCircle"))
 								{
 									sp.player.teleport(SburbPlayers.stl(sp.sleepingloc));
 									sp.player.setAllowFlight(false);

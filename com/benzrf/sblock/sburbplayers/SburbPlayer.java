@@ -43,3 +43,4 @@ public class SburbPlayer implements Serializable
 	public boolean dreaming;
 	private static final long serialVersionUID = -6947763764629711601L;
 }
+
