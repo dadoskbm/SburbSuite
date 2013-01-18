@@ -281,11 +281,32 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			}
 			this.tpacks.put(((Player)sender).getLocation().getWorld().getName(), args[0]);
 		}
+		else if (commandLabel.equals("readcaptcha"))
+		{
+			if (!sender.isOp())
+			{
+				return true;
+			}
+			sender.sendMessage(CaptchaCoder.encode(((Player) sender).getItemInHand()));
+		}
+		else if (commandLabel.equals("makecaptcha"))
+		{
+			if (!sender.isOp())
+			{
+				return true;
+			}
+			((Player) sender).getWorld().dropItem(((Player) sender).getLocation(), CaptchaCoder.decode(args[0]));
+		}
 		else
 		{
 			if (this.players.containsKey(sender.getName())) CommandParser.runCommand(args, this.root, this.players.get(sender.getName()));
 		}
 		return true;
+	}
+	
+	public String getCaptcha(String p)
+	{
+		return CaptchaCoder.encode(this.getServer().getPlayer(p).getItemInHand());
 	}
 	
 	public static String lts(Location l)
