@@ -1,39 +1,51 @@
 package com.benzrf.sblock.sburbplayers;
 
+import com.benzrf.sblock.sburbplayers.commandparser.ArgumentType;
+import com.benzrf.sblock.sburbplayers.commandparser.CommandNode;
+import com.benzrf.sblock.sburbplayers.commandparser.CommandParser;
+import com.benzrf.sblock.sburbplayers.commandparser.ExecutableCommandNode;
+
+import com.google.gson.Gson;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.SkullType;
+import org.bukkit.block.Skull;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_4_6.entity.CraftPlayer;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.yaml.snakeyaml.Yaml;
 
-import com.benzrf.sblock.sburbplayers.commandparser.ArgumentType;
-import com.benzrf.sblock.sburbplayers.commandparser.CommandNode;
-import com.benzrf.sblock.sburbplayers.commandparser.CommandParser;
-import com.benzrf.sblock.sburbplayers.commandparser.ExecutableCommandNode;
-import com.google.gson.Gson;
+import org.yaml.snakeyaml.Yaml;
 
 public class SburbPlayers extends JavaPlugin implements Listener
 {
@@ -88,6 +100,30 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		new ExecutableCommandNode("i", this.root, SburbPlayer.class, "getInfo", ArgumentType.PLAYER);
 		new ExecutableCommandNode("info", this.root, SburbPlayer.class, "getInfo", ArgumentType.PLAYER);
 		instance = this;
+	}
+	
+	@EventHandler
+	public void onBlockBreak(BlockBreakEvent event)
+	{
+		if (!event.isCancelled() && event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.WITHER))
+		{
+			event.setCancelled(true);
+			event.getBlock().setTypeId(0);
+			Item i = event.getBlock().getWorld().dropItem(event.getBlock().getLocation(), new ItemStack(Material.SKULL_ITEM));
+			i.getItemStack().setDurability((short) 1);
+			ItemMeta im = i.getItemStack().getItemMeta();
+			im.setDisplayName(ChatColor.WHITE + "Uncarved Cruxite Dowel");
+			i.getItemStack().setItemMeta(im);
+		}
+	}
+	
+	@EventHandler
+	public void onBlockPlace(BlockPlaceEvent event)
+	{
+		if (event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.ZOMBIE))
+		{
+			event.setCancelled(true);
+		}
 	}
 	
 	@EventHandler
@@ -281,11 +317,32 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			}
 			this.tpacks.put(((Player)sender).getLocation().getWorld().getName(), args[0]);
 		}
+		else if (commandLabel.equals("readcaptcha"))
+		{
+			if (!sender.isOp())
+			{
+				return true;
+			}
+			sender.sendMessage(CaptchaCoder.encode(((Player) sender).getItemInHand()));
+		}
+		else if (commandLabel.equals("makecaptcha"))
+		{
+			if (!sender.isOp())
+			{
+				return true;
+			}
+			((Player) sender).getWorld().dropItem(((Player) sender).getLocation(), CaptchaCoder.decode(args[0]));
+		}
 		else
 		{
 			if (this.players.containsKey(sender.getName())) CommandParser.runCommand(args, this.root, this.players.get(sender.getName()));
 		}
 		return true;
+	}
+	
+	public String getCaptcha(String p)
+	{
+		return CaptchaCoder.encode(this.getServer().getPlayer(p).getItemInHand());
 	}
 	
 	public static String lts(Location l)

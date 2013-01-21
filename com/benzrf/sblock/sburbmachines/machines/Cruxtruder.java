@@ -6,8 +6,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class Cruxtruder extends Machine
 {
@@ -55,7 +58,11 @@ public class Cruxtruder extends Machine
 		}
 		else if (this.broken && Arrays.equals(Machine.getLocationDifference(b.getLocation(), this.base), Cruxtruder.diamond))
 		{
-			this.base.getWorld().dropItem(this.base.clone().add(Cruxtruder.top[0], Cruxtruder.top[1], Cruxtruder.top[2]), Cruxtruder.cruxite);
+			Item i = this.base.getWorld().dropItem(this.base.clone().add(Cruxtruder.top[0], Cruxtruder.top[1], Cruxtruder.top[2]), new ItemStack(Material.SKULL_ITEM));
+			i.getItemStack().setDurability((short) 1);
+			ItemMeta im = i.getItemStack().getItemMeta();
+			im.setDisplayName(ChatColor.WHITE + "Uncarved Cruxite Dowel");
+			i.getItemStack().setItemMeta(im);
 		}
 		return true;
 	}
@@ -120,12 +127,6 @@ public class Cruxtruder extends Machine
 	static final int[] diamond = {0, 2, 0};
 	static final int[] top = {0, 3, 0};
 	
-	static final ItemStack cruxite;
-	static
-	{
-		cruxite = new ItemStack(Material.SKULL_ITEM);
-		cruxite.getItemMeta().setDisplayName(ChatColor.WHITE + "Uncarved Cruxite Dowel");
-	}
-	
 	private static final long serialVersionUID = -3516283273370627172L;
 }
+
