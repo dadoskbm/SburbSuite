@@ -15,7 +15,6 @@ public class SburbPlayer implements Serializable
 		this.mplanet = mplanet;
 		this.cplanet = cplanet;
 		this.bed = bed;
-		this.dreaming = false;
 	}
 	
 	public void sendMessage(String s)
@@ -40,7 +39,7 @@ public class SburbPlayer implements Serializable
 	public String bed;
 	public transient boolean inBed = false;
 	public String sleepingloc = "";
-	public boolean dreaming;
+	public String dreamingloc = "";
 	private static final long serialVersionUID = -6947763764629711601L;
 }
 
