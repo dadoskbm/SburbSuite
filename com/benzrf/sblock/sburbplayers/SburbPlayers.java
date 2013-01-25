@@ -34,11 +34,13 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -140,7 +142,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	}
 	
 	@EventHandler
-	public void onPlayerJoin(PlayerJoinEvent event) throws IOException, ClassNotFoundException
+	public void onPlayerJoin(PlayerJoinEvent event) throws IOException, ClassNotFoundException, java.sql.SQLException
 	{
 		readPlayer(event.getPlayer());
 		if (tpacks.containsKey(event.getPlayer().getWorld().getName()))
@@ -192,7 +194,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	}
 
 	@EventHandler
-	public void onPlayerQuit(PlayerQuitEvent event) throws IOException
+	public void onPlayerQuit(PlayerQuitEvent event) throws IOException, java.sql.SQLException
 	{
 		writePlayer(event.getPlayer());
 		new File("plugins/SburbPlayers/ips/" + event.getPlayer().getAddress().getAddress().getHostAddress()).delete();
