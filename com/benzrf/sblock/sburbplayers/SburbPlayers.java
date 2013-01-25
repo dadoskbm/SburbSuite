@@ -155,7 +155,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			}
 			else
 			{
-				this.players.put(p.getName(), new SburbPlayer(p, SClass.Heir, Aspect.Breath, MPlanet.LOWAS, CPlanet.Prospit, Integer.toString(new Random().nextInt(4))));
+				this.players.put(p.getName(), new SburbPlayer(p, SClass.Heir, Aspect.Breath, MPlanet.LOWAS, CPlanet.Prospit, Integer.toString(new Random().nextInt(3))));
 			}
 		}
 	}
@@ -214,6 +214,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 								((CraftPlayer) sp.player).getHandle().a(false, true, false);
 								if (sp.player.getWorld().getName().equals("InnerCircle") || sp.player.getWorld().getName().equals("OuterCircle"))
 								{
+									sp.dreamingloc = SburbPlayers.lts(sp.player.getLocation());
 									sp.player.teleport(SburbPlayers.stl(sp.sleepingloc));
 									sp.player.setAllowFlight(false);
 									sp.player.setFlying(false);
@@ -221,10 +222,9 @@ public class SburbPlayers extends JavaPlugin implements Listener
 								else
 								{
 									sp.sleepingloc = SburbPlayers.lts(sp.player.getLocation());
-									sp.player.teleport(SburbPlayers.stl((String)SburbPlayers.instance.towers.get(sp.cplanet.toString() + sp.bed)));
+									sp.player.teleport(sp.dreamingloc.equals("") ? SburbPlayers.stl((String)SburbPlayers.instance.towers.get(sp.cplanet.toString() + sp.bed)) : SburbPlayers.stl(sp.dreamingloc));
 									sp.player.setAllowFlight(true);
 								}
-//								sp.dreaming = (!sp.dreaming);
 							}
 						}
 				}
@@ -386,3 +386,4 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	private String prefix = ChatColor.WHITE + "[" + ChatColor.GREEN + "Sburb" + ChatColor.RED + "Players" + ChatColor.WHITE + "] ";
 	private Gson gson = new Gson();
 }
+
