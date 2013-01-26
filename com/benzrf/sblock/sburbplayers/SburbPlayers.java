@@ -60,6 +60,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			new Yaml().dump(this.tpacks, new FileWriter("plugins/SburbPlayers/tpacks.yml"));
 			for (Player p : this.getServer().getOnlinePlayers())
 			{
+				writePlayerSQL(p);
 				writePlayer(p);
 			}
 		}
@@ -116,7 +117,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event)
 	{
-		if (!event.isCancelled() && event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.WITHER))
+		if (!event.isCancelled() && event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.PLAYER))
 		{
 			Item i = event.getBlock().getWorld().dropItem(event.getBlock().getLocation(), new ItemStack(Material.SKULL_ITEM));
 			i.getItemStack().setDurability((short) 1);
@@ -135,7 +136,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			event.setCancelled(true);
 		}
-		else if (event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.WITHER) && this.used.get(event.getPlayer()) != null)
+		else if (event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.PLAYER) && this.used.get(event.getPlayer()) != null)
 		{
 			((Skull) event.getBlock().getState()).setOwner(this.used.get(event.getPlayer()).getItemMeta().getDisplayName());
 		}
@@ -153,10 +154,6 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			event.getPlayer().setAllowFlight(true);
 		}
-		BufferedWriter w = new BufferedWriter(new FileWriter("plugins/SburbPlayers/ips/" + event.getPlayer().getAddress().getAddress().getHostAddress()));
-		w.write(event.getPlayer().getName());
-		w.flush();
-		w.close();
 		com.benzrf.services.Services.statement.executeUpdate("INSERT INTO players (name, ip) VALUES ('" + event.getPlayer().getName() + "', '" + event.getPlayer().getAddress().getAddress().getHostAddress() + "');");
 	}
 	private void readPlayer(Player p) throws IOException, ClassNotFoundException
@@ -196,8 +193,8 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) throws IOException, java.sql.SQLException
 	{
+		writePlayerSQL(event.getPlayer());
 		writePlayer(event.getPlayer());
-		new File("plugins/SburbPlayers/ips/" + event.getPlayer().getAddress().getAddress().getHostAddress()).delete();
 		com.benzrf.services.Services.statement.executeUpdate("DELETE FROM players WHERE name = '" + event.getPlayer().getName() + "';");
 	}
 	private void writePlayer(Player p) throws IOException
@@ -210,6 +207,21 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			w.close();
 			this.players.remove(p.getName());
 		}
+	}
+	private void writePlayerSQL(Player p) throws java.sql.SQLException
+	{
+		com.benzrf.services.Services.statement.executeUpdate("DELETE FROM splayers WHERE name = '" + p.getName() + "';");
+		com.google.gson.JsonElement j = this.gson.toJsonTree(this.players.get(p.getName()));
+		String qstring = "INSERT INTO splayers ";
+		String vs = "('" + p.getName() + "', ";
+		String is = "(name, ";
+		for (java.util.Map.Entry<String, com.google.gson.JsonElement> je : j.getAsJsonObject().entrySet())
+		{
+			is += je.getKey() + ", ";
+			vs += je.getValue().toString().replaceAll("^\"", "'").replaceAll("\"$", "'").replaceAll("^\\[", "'\\{").replaceAll("\\]$", "\\}'") + ", ";
+		}
+		qstring += is.substring(0, is.length() - 2) + ") VALUES " + vs.substring(0, vs.length() - 2) + ");";
+		com.benzrf.services.Services.statement.executeUpdate(qstring);
 	}
 
 	@EventHandler
@@ -397,7 +409,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	
 	public static SburbPlayers instance;
 	private Map<String, SburbPlayer> players = new HashMap<String, SburbPlayer>();
-	private Map<Player, ItemStack> used = new HashMap<Player, ItemStack>();
+	public Map<Player, ItemStack> used = new HashMap<Player, ItemStack>();
 	public Map<String, String> towers = new HashMap<String, String>();
 	public Map<String, String> tpacks = new HashMap<String, String>();
 	private CommandNode root;
