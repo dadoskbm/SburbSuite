@@ -1,0 +1,12 @@
+name: SburbChat
+main: com.benzrf.sblock.sburbchat.SburbChat
+version: 1.3
+commands:
+ sc:
+  description: See http://bit.ly/Xg8F2t for help!
+  usage: /sc <commands>
+ permissions:
+  sburbchat.chatcolor:
+   default: op
+  sburbchat.gname:
+   default: false

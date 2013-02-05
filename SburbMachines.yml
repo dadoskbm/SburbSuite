@@ -1,0 +1,8 @@
+name: SburbMachines
+main: com.benzrf.sblock.sburbmachines.SburbMachines
+version: 1.0
+author: benzrf
+depend: [LWC]
+commands:
+ crux:
+ delmachine:

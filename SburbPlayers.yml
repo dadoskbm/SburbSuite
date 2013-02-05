@@ -1,0 +1,11 @@
+name: SburbPlayers
+main: com.benzrf.sblock.sburbplayers.SburbPlayers
+version: 1.0
+commands:
+ setsp:
+ getsp:
+ addtower:
+ addtpack:
+ sp:
+ readcaptcha:
+ makecaptcha:
