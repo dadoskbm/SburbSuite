@@ -217,7 +217,7 @@ public class NormalChannel implements Channel, Serializable
 		{
 			color = ChatColor.GREEN;
 		}
-		return (message.startsWith("#") ? "* " : "<") + color + sender.getName() + ChatColor.WHITE + (message.startsWith("#") ? "" : "> ");
+		return (message.startsWith("#") ? "* " : "<") + color + sender.getDisplayName() + ChatColor.WHITE + (message.startsWith("#") ? "" : "> ");
 	}
 	
 	@Override

@@ -34,3 +34,4 @@ public class TmpChannel extends NormalChannel
 	
 	private static final long serialVersionUID = 3909818601954361239L;
 }
+
