@@ -9,7 +9,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class Cruxtruder extends Machine

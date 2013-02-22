@@ -1,23 +1,15 @@
 package com.benzrf.sblock.sburbplayers;
 
-import com.benzrf.sblock.sburbplayers.commandparser.ArgumentType;
-import com.benzrf.sblock.sburbplayers.commandparser.CommandNode;
-import com.benzrf.sblock.sburbplayers.commandparser.CommandParser;
-import com.benzrf.sblock.sburbplayers.commandparser.ExecutableCommandNode;
-
-import com.google.gson.Gson;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
-
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -37,17 +29,26 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import org.yaml.snakeyaml.Yaml;
+
+import com.benzrf.sblock.sburbplayers.commandparser.ArgumentType;
+import com.benzrf.sblock.sburbplayers.commandparser.CommandNode;
+import com.benzrf.sblock.sburbplayers.commandparser.CommandParser;
+import com.benzrf.sblock.sburbplayers.commandparser.ExecutableCommandNode;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.gson.Gson;
 
 public class SburbPlayers extends JavaPlugin implements Listener
 {
@@ -60,7 +61,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			new Yaml().dump(this.tpacks, new FileWriter("plugins/SburbPlayers/tpacks.yml"));
 			for (Player p : this.getServer().getOnlinePlayers())
 			{
-				writePlayerSQL(p);
+//				writePlayerSQL(p);
 				writePlayer(p);
 			}
 		}
@@ -79,6 +80,11 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			this.towers = ((HashMap<String, String>) new Yaml().loadAs(new FileReader("plugins/SburbPlayers/towers.yml"), HashMap.class));
 			this.tpacks = ((HashMap<String, String>) new Yaml().loadAs(new FileReader("plugins/SburbPlayers/tpacks.yml"), HashMap.class));
+			String rawAbstrata = readFile("plugins/SburbPlayers/abstrata.spd");
+			for (String a : rawAbstrata.split("\n"))
+			{
+				this.abstrata.put(a.split(":")[1], a.split(":")[0].split(", "));
+			}
 		}
 		catch (Exception e)
 		{
@@ -102,7 +108,42 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		this.root = new CommandNode("sp");
 		new ExecutableCommandNode("i", this.root, SburbPlayer.class, "getInfo", ArgumentType.PLAYER);
 		new ExecutableCommandNode("info", this.root, SburbPlayer.class, "getInfo", ArgumentType.PLAYER);
+		
+		CommandNode strife = new CommandNode("s", this.root);
+		new ExecutableCommandNode("a", strife, SburbPlayer.class, "setSpecibus", ArgumentType.SPECIBUS);
+		new ExecutableCommandNode("w", strife, SburbPlayer.class, "setItem");
+		new ExecutableCommandNode("r", strife, SburbPlayer.class, "retrieveItem");
+		
+		this.shortNames.put("Uncarved Cruxite Dowel", "UnCruxDow");
+		
 		instance = this;
+	}
+	
+	@EventHandler
+	public void onInventoryClick(InventoryClickEvent event)
+	{
+		if (event.getInventory() instanceof AnvilInventory && event.getCurrentItem() != null && event.getCurrentItem().getType().equals(Material.SKULL_ITEM) && event.getCurrentItem().getDurability() != 3)
+		{
+			event.setCancelled(true);
+		}
+		else if ("Strife Deck".equals(event.getInventory().getTitle()))
+		{
+			SburbPlayer sp = this.players.get(event.getWhoClicked().getName());
+			String[] abstratus = this.abstrata.get(sp.abstratus);
+			String material = event.getCurrentItem().getType().toString();
+			if (!Arrays.asList(abstratus).contains(material))
+			{
+				event.setCancelled(true);
+			}
+			else if (event.getSlot() < 9)
+			{
+				sp.weapons[event.getSlot()] = event.getCurrentItem();
+			}
+			else
+			{
+				this.getServer().broadcastMessage(Integer.toString(event.getSlot()));
+			}
+		}
 	}
 	
 	@EventHandler
@@ -120,7 +161,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		if (!event.isCancelled() && event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.PLAYER))
 		{
 			Item i = event.getBlock().getWorld().dropItem(event.getBlock().getLocation(), new ItemStack(Material.SKULL_ITEM));
-			i.getItemStack().setDurability((short) 1);
+			i.getItemStack().setDurability((short) 3);
 			ItemMeta im = i.getItemStack().getItemMeta();
 			im.setDisplayName(((Skull) event.getBlock().getState()).getOwner());
 			i.getItemStack().setItemMeta(im);
@@ -138,7 +179,17 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		}
 		else if (event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.PLAYER) && this.used.get(event.getPlayer()) != null)
 		{
-			((Skull) event.getBlock().getState()).setOwner(this.used.get(event.getPlayer()).getItemMeta().getDisplayName());
+			Skull s = ((Skull) event.getBlock().getState());
+			if (this.used.get(event.getPlayer()).getItemMeta().getDisplayName().length() > 12)
+			{
+				String name = this.shortNames.get(this.used.get(event.getPlayer()).getItemMeta().getDisplayName());
+				s.setOwner(name == null ? "PerGenObj" : name);
+			}
+			else
+			{
+				s.setOwner(this.used.get(event.getPlayer()).getItemMeta().getDisplayName());
+			}
+			s.update();
 		}
 	}
 	
@@ -154,7 +205,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			event.getPlayer().setAllowFlight(true);
 		}
-		com.benzrf.services.Services.statement.executeUpdate("INSERT INTO players (name, ip) VALUES ('" + event.getPlayer().getName() + "', '" + event.getPlayer().getAddress().getAddress().getHostAddress() + "');");
+//		com.benzrf.services.Services.statement.executeUpdate("INSERT INTO players (name, ip) VALUES ('" + event.getPlayer().getName() + "', '" + event.getPlayer().getAddress().getAddress().getHostAddress() + "');");
 	}
 	private void readPlayer(Player p) throws IOException, ClassNotFoundException
 	{
@@ -187,15 +238,15 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			stream.close();
 		}
-		return file;
+		return file.replaceAll("\\r\\n", "\n").replaceAll("\\r", "\n");
 	}
 
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) throws IOException, java.sql.SQLException
 	{
-		writePlayerSQL(event.getPlayer());
+//		writePlayerSQL(event.getPlayer());
 		writePlayer(event.getPlayer());
-		com.benzrf.services.Services.statement.executeUpdate("DELETE FROM players WHERE name = '" + event.getPlayer().getName() + "';");
+//		com.benzrf.services.Services.statement.executeUpdate("DELETE FROM players WHERE name = '" + event.getPlayer().getName() + "';");
 	}
 	private void writePlayer(Player p) throws IOException
 	{
@@ -208,6 +259,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			this.players.remove(p.getName());
 		}
 	}
+	@SuppressWarnings("unused")
 	private void writePlayerSQL(Player p) throws java.sql.SQLException
 	{
 		com.benzrf.services.Services.statement.executeUpdate("DELETE FROM splayers WHERE name = '" + p.getName() + "';");
@@ -412,8 +464,9 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	public Map<Player, ItemStack> used = new HashMap<Player, ItemStack>();
 	public Map<String, String> towers = new HashMap<String, String>();
 	public Map<String, String> tpacks = new HashMap<String, String>();
+	public Map<String, String[]> abstrata = new HashMap<String, String[]>();
+	BiMap<String, String> shortNames = HashBiMap.create();
 	private CommandNode root;
 	private String prefix = ChatColor.WHITE + "[" + ChatColor.GREEN + "Sburb" + ChatColor.RED + "Players" + ChatColor.WHITE + "] ";
 	private Gson gson = new Gson();
 }
-

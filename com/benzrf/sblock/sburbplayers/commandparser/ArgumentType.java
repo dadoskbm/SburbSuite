@@ -7,7 +7,8 @@ import com.benzrf.sblock.sburbplayers.commandparser.validators.*;
 
 public enum ArgumentType
 {
-	PLAYER("player", new PlayerArgumentValidator(), new PlayerArgumentConverter(), Player.class);
+	PLAYER("player", new PlayerArgumentValidator(), new PlayerArgumentConverter(), Player.class),
+	SPECIBUS("specibus", new SpecibusArgumentValidator(), new StringArgumentConverter(), String.class);
 	
 	private ArgumentType(String humanName, ArgumentValidator av, ArgumentConverter ac, Class<?> rt)
 	{

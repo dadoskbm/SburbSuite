@@ -1,17 +1,13 @@
 package com.benzrf.sblock.sburbmachines.machines;
 
-import java.util.Arrays;
-
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
-public class Desinix extends Machine
+public class Designix extends Machine
 {
-	public Desinix(){}
-	public Desinix(Location base)
+	public Designix(){}
+	public Designix(Location base)
 	{
 		this.base = base.getBlock().getLocation();
 	}
