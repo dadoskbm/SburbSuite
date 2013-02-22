@@ -32,7 +32,7 @@ public class NickChannel extends NormalChannel
 		{
 			color = ChatColor.GREEN;
 		}
-		return (message.startsWith("#") ? "* " : "<") + color + (nickMap.containsKey(sender.getName()) ? nickMap.get(sender.getName()) : sender.getName()) + ChatColor.WHITE + (message.startsWith("#") ? "" : "> ");
+		return (message.startsWith("#") ? "* " : "<") + color + (nickMap.containsKey(sender.getName()) ? nickMap.get(sender.getName()) : sender.getDisplayName()) + ChatColor.WHITE + (message.startsWith("#") ? "" : "> ");
 	}
 	
 	@Override

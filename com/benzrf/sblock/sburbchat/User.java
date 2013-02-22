@@ -200,6 +200,10 @@ public class User
 	{
 		return this.pthis.getName();
 	}
+	public String getDisplayName()
+	{
+		return this.pthis.getDisplayName();
+	}
 	
 	public Player getPlayer()
 	{
