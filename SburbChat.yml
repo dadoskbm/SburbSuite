@@ -10,3 +10,5 @@ commands:
    default: op
   sburbchat.gname:
    default: false
+  sburbchat.bnick:
+   default: false

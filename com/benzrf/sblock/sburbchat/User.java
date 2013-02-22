@@ -202,7 +202,7 @@ public class User
 	}
 	public String getDisplayName()
 	{
-		return this.pthis.getDisplayName();
+		return this.hasPermission("sburbchat.bnick") ? this.pthis.getDisplayName() : this.getName();
 	}
 	
 	public Player getPlayer()
