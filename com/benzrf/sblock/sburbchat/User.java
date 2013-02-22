@@ -43,7 +43,14 @@ public class User
 				{
 					stream.close();
 				}
-				new User(p, pdata.split(String.valueOf(separator)));
+				try
+				{
+					new User(p, pdata.split(String.valueOf(separator)));
+				}
+				catch (ArrayIndexOutOfBoundsException e)
+				{
+					new User(p, SburbChat.getInstance().getChannelManager().getChannel("#")).sendMessage(ChatColor.RED + "Your SburbChat data has been lost or corrupted! You may want to rejoin any channels you were previously listening to.");
+				}
 			}
 			else
 			{

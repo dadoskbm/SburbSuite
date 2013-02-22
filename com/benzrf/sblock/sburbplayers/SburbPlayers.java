@@ -213,9 +213,17 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			if (new File("plugins/SburbPlayers/u_" + p.getName() + ".spd").exists())
 			{
-				SburbPlayer sp = this.gson.fromJson(this.readFile("plugins/SburbPlayers/u_" + p.getName() + ".spd"), SburbPlayer.class);
-				sp.player = p;
-				this.players.put(p.getName(), sp);
+				try
+				{
+					SburbPlayer sp = this.gson.fromJson(this.readFile("plugins/SburbPlayers/u_" + p.getName() + ".spd"), SburbPlayer.class);
+					sp.player = p;
+					this.players.put(p.getName(), sp);
+				}
+				catch (NullPointerException e)
+				{
+					this.players.put(p.getName(), new SburbPlayer(p, SClass.Heir, Aspect.Breath, MPlanet.LOWAS, CPlanet.Prospit, Integer.toString(new Random().nextInt(3))));
+					p.sendMessage(this.prefix + ChatColor.RED + "Your SburbPlayers data has been lost or corrupted! Please ask an admin for assistance as soon as you can!");
+				}
 			}
 			else
 			{
