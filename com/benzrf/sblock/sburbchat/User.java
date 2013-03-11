@@ -43,7 +43,14 @@ public class User
 				{
 					stream.close();
 				}
-				new User(p, pdata.split(String.valueOf(separator)));
+				try
+				{
+					new User(p, pdata.split(String.valueOf(separator)));
+				}
+				catch (ArrayIndexOutOfBoundsException e)
+				{
+					new User(p, SburbChat.getInstance().getChannelManager().getChannel("#")).sendMessage(ChatColor.RED + "Your SburbChat data has been lost or corrupted! You may want to rejoin any channels you were previously listening to.");
+				}
 			}
 			else
 			{
@@ -199,6 +206,10 @@ public class User
 	public String getName()
 	{
 		return this.pthis.getName();
+	}
+	public String getDisplayName()
+	{
+		return this.hasPermission("sburbchat.bnick") ? this.pthis.getDisplayName() : this.getName();
 	}
 	
 	public Player getPlayer()

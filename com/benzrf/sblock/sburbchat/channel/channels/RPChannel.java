@@ -1,17 +1,12 @@
 package com.benzrf.sblock.sburbchat.channel.channels;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
 
-import com.benzrf.sblock.sburbchat.SburbChat;
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
@@ -100,7 +95,7 @@ public class RPChannel extends NickChannel
 		m = sender.hasPermission("sburbchat.chatcolor") ? m.replaceAll("&([0-9a-fk-or])", "") : m;
 		m = (m.startsWith("\\@") ? m.substring(1) : m);
 		Quirker q = canonNicks.get(this.nickMap.get(sender.getName()));
-		this.sendToAll(this.getChatPrefix(sender, m) + (m.startsWith("\\#") ? q.apply(m.substring(1)) : (m.startsWith("#") ? q.applyColor(m.substring(1)) : q.apply(m.substring(1)))));
+		this.sendToAll(this.getChatPrefix(sender, m) + (m.startsWith("\\#") ? q.apply(m.substring(1)) : (m.startsWith("#") ? q.applyColor(m.substring(1)) : q.apply(m))));
 	}
 	
 	@Override
@@ -480,3 +475,4 @@ abstract class Quirkf
 		return msg.replace("h", ")(").replace("H", ")(").replace("E", "-E");
 	}
 }
+
