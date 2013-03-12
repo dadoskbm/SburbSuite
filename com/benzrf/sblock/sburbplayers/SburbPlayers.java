@@ -45,9 +45,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.benzrf.sblock.common.commandparser.ArgumentType;
 import com.benzrf.sblock.common.commandparser.CommandNode;
-import com.benzrf.sblock.common.commandparser.CommandParser;
 import com.benzrf.sblock.common.commandparser.ExecutableCommandNode;
-import com.benzrf.sblock.sburbchat.User;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.gson.Gson;
@@ -432,7 +430,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		}
 		else
 		{
-			if (this.players.containsKey(sender.getName())) CommandParser.runCommand(args, this.root, this.players.get(sender.getName()), sender);
+			if (this.players.containsKey(sender.getName())) root.runCommand(args, this.players.get(sender.getName()), sender);
 		}
 		return true;
 	}

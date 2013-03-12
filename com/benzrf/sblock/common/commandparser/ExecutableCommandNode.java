@@ -5,12 +5,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 
 
 public class ExecutableCommandNode extends CommandNode
 {
+	private List<ArgumentType> argTypes;
 	private Class<?>[] cArgTypes;
 	private String commandName;
+	private boolean mergeRequired = false;
 	
 	public ExecutableCommandNode(String name, CommandNode parent, String commandName, ArgumentType... args)
 	{
@@ -19,8 +22,12 @@ public class ExecutableCommandNode extends CommandNode
 		this.argTypes = Arrays.asList(args);
 		for(ArgumentType argtype : argTypes)
 		{
-			if(argtype.mergeArguments() && argTypes.indexOf(argtype) != argTypes.size() - 1)
-				throw new IllegalArgumentException("Argument type " + argtype + " must be the last argument in the command.");
+			if(argtype.mergeArguments())
+			{
+				mergeRequired = true;
+				if(argTypes.indexOf(argtype) != argTypes.size() - 1)
+					throw new IllegalArgumentException("Argument type " + argtype + " must be the last argument in the command.");
+			}
 		}
 		this.cArgTypes = new Class<?>[argTypes.size()];
 		for (int i = 0; i < argTypes.size(); i++)
@@ -45,12 +52,64 @@ public class ExecutableCommandNode extends CommandNode
 		return msg;
 	}
 	
-	public void invoke(List<String> args, ExecutorClass toExecute)
+	private void mergeThenRun(String[] args, ExecutorClass toExecute, CommandSender sender)
 	{
-		Object[] oArgs = new Object[args.size()];
-		for (int i = 0; i < args.size(); i++)
+		if(args.length < argTypes.size())
 		{
-			oArgs[i] = this.argTypes.get(i).convertArgument(args.get(i));
+			sender.sendMessage(ChatColor.RED + generateArgumentListErrorMessage());
+			return;
+		}
+		
+		for(int i = 0; i < argTypes.size(); i++)
+		{
+			if(!argTypes.get(i).isArgumentValid(args[i]))
+			{
+				sender.sendMessage(ChatColor.RED + args[i] + " is not a valid " + argTypes.get(i).getHumanName() + ChatColor.RED + "!");
+				return;
+			}
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		for(int i = argTypes.size(); i < args.length; i++)
+		{
+			sb.append(args[i] + " ");
+		}
+		args[argTypes.size() - 1] = sb.toString();
+		
+		invoke(Arrays.copyOfRange(args, 0, argTypes.size()), toExecute);
+	}
+	
+	public void runCommand(String[] args, ExecutorClass toExecute, CommandSender sender)
+	{
+		if(mergeRequired)
+			mergeThenRun(args,toExecute,sender);
+		else
+		{
+			if(args.length != argTypes.size())
+			{
+				sender.sendMessage(ChatColor.RED + generateArgumentListErrorMessage());
+				return;
+			}
+			
+			for(int i = 0; i < argTypes.size(); i++)
+			{
+				if(!argTypes.get(i).isArgumentValid(args[i]))
+				{
+					sender.sendMessage(ChatColor.RED + args[i] + " is not a valid " + argTypes.get(i).getHumanName() + ChatColor.RED + "!");
+					return;
+				}
+			}
+			
+			invoke(args, toExecute);
+		}
+	}
+	
+	public void invoke(String[] args, ExecutorClass toExecute)
+	{
+		Object[] oArgs = new Object[args.length];
+		for (int i = 0; i < args.length; i++)
+		{
+			oArgs[i] = this.argTypes.get(i).convertArgument(args[i]);
 		}
 		try
 		{
@@ -79,6 +138,4 @@ public class ExecutableCommandNode extends CommandNode
 	        e.printStackTrace();
         }
 	}
-	
-	private List<ArgumentType> argTypes;
 }

@@ -1,12 +1,14 @@
 package com.benzrf.sblock.common.commandparser;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 
 public class CommandNode
 {
@@ -48,6 +50,14 @@ public class CommandNode
 		{
 			return this.parent.getFullName() + " " + this.name;
 		}
+	}
+	
+	public void runCommand(String[] command, ExecutorClass toExecute, CommandSender sender)
+	{
+		if(command.length == 0 || !children.containsKey(command[0]))
+			sender.sendMessage(ChatColor.RED + generateChildListErrorMessage());
+		else
+			children.get(command[0]).runCommand(Arrays.copyOfRange(command, 1, command.length), toExecute, sender);
 	}
 	
 	public String generateChildListErrorMessage()

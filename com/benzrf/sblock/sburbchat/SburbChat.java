@@ -1,6 +1,13 @@
 package com.benzrf.sblock.sburbchat;
 
-import static com.benzrf.sblock.common.commandparser.ArgumentType.*;
+import static com.benzrf.sblock.common.commandparser.ArgumentType.ACCESS_LEVEL;
+import static com.benzrf.sblock.common.commandparser.ArgumentType.ALIAS;
+import static com.benzrf.sblock.common.commandparser.ArgumentType.CHANNEL;
+import static com.benzrf.sblock.common.commandparser.ArgumentType.CHANNEL_TYPE;
+import static com.benzrf.sblock.common.commandparser.ArgumentType.NEW_CHANNEL;
+import static com.benzrf.sblock.common.commandparser.ArgumentType.NICK;
+import static com.benzrf.sblock.common.commandparser.ArgumentType.PRIVILEGE_LEVEL;
+import static com.benzrf.sblock.common.commandparser.ArgumentType.USER;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,7 +22,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.benzrf.sblock.common.commandparser.CommandNode;
-import com.benzrf.sblock.common.commandparser.CommandParser;
 import com.benzrf.sblock.common.commandparser.ExecutableCommandNode;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelManager;
@@ -178,7 +184,7 @@ public class SburbChat extends JavaPlugin
 			sender.sendMessage(this.prefix + ChatColor.RED + "You are not listed as a user for some reason! Seek help immediately!");
 			return true;
 		}
-		CommandParser.runCommand(args, this.commandRoot, User.getUser(sender.getName()), sender);
+		commandRoot.runCommand(args, User.getUser(sender.getName()), sender);
 		return true;
 	}
 	
