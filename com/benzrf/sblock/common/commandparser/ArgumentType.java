@@ -1,13 +1,31 @@
-package com.benzrf.sblock.sburbchat.commandparser;
+package com.benzrf.sblock.common.commandparser;
 
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
+import com.benzrf.sblock.common.commandparser.converters.ArgumentConverter;
+import com.benzrf.sblock.common.commandparser.converters.StringArgumentConverter;
+import com.benzrf.sblock.common.commandparser.validators.ArgumentValidator;
+import com.benzrf.sblock.common.commandparser.validators.StringArgumentValidator;
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
 import com.benzrf.sblock.sburbchat.channel.channels.Channel;
-import com.benzrf.sblock.sburbchat.commandparser.converters.*;
-import com.benzrf.sblock.sburbchat.commandparser.validators.*;
+import com.benzrf.sblock.sburbchat.commandparser.converters.AccessLevelArgumentConverter;
+import com.benzrf.sblock.sburbchat.commandparser.converters.ChannelArgumentConverter;
+import com.benzrf.sblock.sburbchat.commandparser.converters.ChannelTypeArgumentConverter;
+import com.benzrf.sblock.sburbchat.commandparser.converters.PrivilegeArgumentConverter;
+import com.benzrf.sblock.sburbchat.commandparser.converters.UserArgumentConverter;
+import com.benzrf.sblock.sburbchat.commandparser.validators.AccessLevelArgumentValidator;
+import com.benzrf.sblock.sburbchat.commandparser.validators.AliasArgumentValidator;
+import com.benzrf.sblock.sburbchat.commandparser.validators.ChannelArgumentValidator;
+import com.benzrf.sblock.sburbchat.commandparser.validators.ChannelTypeArgumentValidator;
+import com.benzrf.sblock.sburbchat.commandparser.validators.NewChannelArgumentValidator;
+import com.benzrf.sblock.sburbchat.commandparser.validators.PrivilegeArgumentValidator;
+import com.benzrf.sblock.sburbchat.commandparser.validators.UserArgumentValidator;
+import com.benzrf.sblock.sburbplayers.commandparser.converters.PlayerArgumentConverter;
+import com.benzrf.sblock.sburbplayers.commandparser.validators.PlayerArgumentValidator;
+import com.benzrf.sblock.sburbplayers.commandparser.validators.SpecibusArgumentValidator;
 
 public enum ArgumentType
 {
@@ -19,7 +37,9 @@ public enum ArgumentType
 	NEW_CHANNEL(ChatColor.GOLD + "#channelname", new NewChannelArgumentValidator(), new StringArgumentConverter(), String.class),
 	USER("username", new UserArgumentValidator(), new UserArgumentConverter(), User.class),
 	ACCESS_LEVEL("accesslevel", new AccessLevelArgumentValidator(), new AccessLevelArgumentConverter(), AccessLevel.class),
-	CHANNEL_TYPE("channeltype", new ChannelTypeArgumentValidator(), new ChannelTypeArgumentConverter(), ChannelType.class);
+	CHANNEL_TYPE("channeltype", new ChannelTypeArgumentValidator(), new ChannelTypeArgumentConverter(), ChannelType.class),
+	SPECIBUS("specibus", new SpecibusArgumentValidator(), new StringArgumentConverter(), String.class),
+	PLAYER("player", new PlayerArgumentValidator(), new PlayerArgumentConverter(), Player.class);
 	
 	private ArgumentType(String humanName, ArgumentValidator av, ArgumentConverter ac, Class<?> rt)
 	{

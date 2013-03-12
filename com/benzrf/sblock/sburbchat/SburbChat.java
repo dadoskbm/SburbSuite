@@ -1,6 +1,6 @@
 package com.benzrf.sblock.sburbchat;
 
-import static com.benzrf.sblock.sburbchat.commandparser.ArgumentType.*;
+import static com.benzrf.sblock.common.commandparser.ArgumentType.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,12 +14,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.benzrf.sblock.common.commandparser.CommandNode;
+import com.benzrf.sblock.common.commandparser.CommandParser;
+import com.benzrf.sblock.common.commandparser.ExecutableCommandNode;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelManager;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
-import com.benzrf.sblock.sburbchat.commandparser.CommandNode;
-import com.benzrf.sblock.sburbchat.commandparser.CommandParser;
-import com.benzrf.sblock.sburbchat.commandparser.ExecutableCommandNode;
 
 public class SburbChat extends JavaPlugin
 {
@@ -178,7 +178,7 @@ public class SburbChat extends JavaPlugin
 			sender.sendMessage(this.prefix + ChatColor.RED + "You are not listed as a user for some reason! Seek help immediately!");
 			return true;
 		}
-		CommandParser.runCommand(args, this.commandRoot, User.getUser(sender.getName()));
+		CommandParser.runCommand(args, this.commandRoot, User.getUser(sender.getName()), sender);
 		return true;
 	}
 	

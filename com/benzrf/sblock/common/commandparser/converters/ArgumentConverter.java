@@ -1,4 +1,4 @@
-package com.benzrf.sblock.sburbplayers.commandparser.converters;
+package com.benzrf.sblock.common.commandparser.converters;
 
 public interface ArgumentConverter
 {

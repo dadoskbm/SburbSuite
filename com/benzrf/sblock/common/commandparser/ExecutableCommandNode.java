@@ -1,41 +1,31 @@
-package com.benzrf.sblock.sburbchat.commandparser;
+package com.benzrf.sblock.common.commandparser;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.ChatColor;
 
-import com.benzrf.sblock.sburbchat.User;
 
 public class ExecutableCommandNode extends CommandNode
 {
+	private Class<?>[] cArgTypes;
+	private String commandName;
+	
 	public ExecutableCommandNode(String name, CommandNode parent, String commandName, ArgumentType... args)
 	{
 		super(name, parent);
+		this.commandName = commandName;
 		this.argTypes = Arrays.asList(args);
 		for(ArgumentType argtype : argTypes)
 		{
 			if(argtype.mergeArguments() && argTypes.indexOf(argtype) != argTypes.size() - 1)
 				throw new IllegalArgumentException("Argument type " + argtype + " must be the last argument in the command.");
 		}
-		Class<?>[] cArgTypes = new Class<?>[argTypes.size()];
+		this.cArgTypes = new Class<?>[argTypes.size()];
 		for (int i = 0; i < argTypes.size(); i++)
 		{
-			cArgTypes[i] = this.argTypes.get(i).getReturnType();
-		}
-		try
-		{
-			this.command = User.class.getMethod(commandName, cArgTypes);
-		}
-		catch (SecurityException e)
-		{
-			e.printStackTrace();
-		}
-		catch (NoSuchMethodException e)
-		{
-			e.printStackTrace();
+			this.cArgTypes[i] = this.argTypes.get(i).getReturnType();
 		}
 	}
 	
@@ -55,7 +45,7 @@ public class ExecutableCommandNode extends CommandNode
 		return msg;
 	}
 	
-	public void invoke(List<String> args, User u)
+	public void invoke(List<String> args, ExecutorClass toExecute)
 	{
 		Object[] oArgs = new Object[args.size()];
 		for (int i = 0; i < args.size(); i++)
@@ -64,7 +54,7 @@ public class ExecutableCommandNode extends CommandNode
 		}
 		try
 		{
-			command.invoke(u, oArgs);
+			toExecute.getClass().getMethod(commandName, cArgTypes).invoke(toExecute, oArgs);
 		}
 		catch (IllegalArgumentException e)
 		{
@@ -78,8 +68,17 @@ public class ExecutableCommandNode extends CommandNode
 		{
 			e.printStackTrace();
 		}
+        catch (SecurityException e)
+        {
+	        // TODO Auto-generated catch block
+	        e.printStackTrace();
+        }
+        catch (NoSuchMethodException e)
+        {
+	        // TODO Auto-generated catch block
+	        e.printStackTrace();
+        }
 	}
 	
 	private List<ArgumentType> argTypes;
-	private Method command;
 }

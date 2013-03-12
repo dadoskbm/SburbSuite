@@ -1,4 +1,4 @@
-package com.benzrf.sblock.sburbchat.commandparser.validators;
+package com.benzrf.sblock.common.commandparser.validators;
 
 public class StringArgumentValidator implements ArgumentValidator
 {

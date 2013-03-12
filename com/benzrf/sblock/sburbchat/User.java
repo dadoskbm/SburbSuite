@@ -18,12 +18,13 @@ import org.bukkit.Effect;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
+import com.benzrf.sblock.common.commandparser.ExecutorClass;
+import com.benzrf.sblock.common.commandparser.PrivilegeLevel;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
 import com.benzrf.sblock.sburbchat.channel.channels.Channel;
-import com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel;
 
-public class User
+public class User implements ExecutorClass
 {
 	public static void addPlayer(Player p) throws IOException
 	{

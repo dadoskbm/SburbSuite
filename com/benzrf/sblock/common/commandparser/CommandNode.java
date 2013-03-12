@@ -1,4 +1,4 @@
-package com.benzrf.sblock.sburbplayers.commandparser;
+package com.benzrf.sblock.common.commandparser;
 
 import java.util.ArrayList;
 import java.util.Collections;

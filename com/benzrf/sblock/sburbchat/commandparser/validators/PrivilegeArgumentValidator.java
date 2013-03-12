@@ -1,6 +1,7 @@
 package com.benzrf.sblock.sburbchat.commandparser.validators;
 
-import com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel;
+import com.benzrf.sblock.common.commandparser.PrivilegeLevel;
+import com.benzrf.sblock.common.commandparser.validators.ArgumentValidator;
 
 /**
  * Validates privilege level inputs.

@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -42,10 +43,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.yaml.snakeyaml.Yaml;
 
-import com.benzrf.sblock.sburbplayers.commandparser.ArgumentType;
-import com.benzrf.sblock.sburbplayers.commandparser.CommandNode;
-import com.benzrf.sblock.sburbplayers.commandparser.CommandParser;
-import com.benzrf.sblock.sburbplayers.commandparser.ExecutableCommandNode;
+import com.benzrf.sblock.common.commandparser.ArgumentType;
+import com.benzrf.sblock.common.commandparser.CommandNode;
+import com.benzrf.sblock.common.commandparser.CommandParser;
+import com.benzrf.sblock.common.commandparser.ExecutableCommandNode;
+import com.benzrf.sblock.sburbchat.User;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.gson.Gson;
@@ -86,6 +88,10 @@ public class SburbPlayers extends JavaPlugin implements Listener
 				this.abstrata.put(a.split(":")[1], a.split(":")[0].split(", "));
 			}
 		}
+		catch(IOException e)
+		{
+			Logger.getLogger("Minecraft").warning("Abstrata data file missing!");
+		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
@@ -106,13 +112,13 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			}
 		}
 		this.root = new CommandNode("sp");
-		new ExecutableCommandNode("i", this.root, SburbPlayer.class, "getInfo", ArgumentType.PLAYER);
-		new ExecutableCommandNode("info", this.root, SburbPlayer.class, "getInfo", ArgumentType.PLAYER);
+		new ExecutableCommandNode("i", this.root, "getInfo", ArgumentType.PLAYER);
+		new ExecutableCommandNode("info", this.root, "getInfo", ArgumentType.PLAYER);
 		
 		CommandNode strife = new CommandNode("s", this.root);
-		new ExecutableCommandNode("a", strife, SburbPlayer.class, "setSpecibus", ArgumentType.SPECIBUS);
-		new ExecutableCommandNode("w", strife, SburbPlayer.class, "setItem");
-		new ExecutableCommandNode("r", strife, SburbPlayer.class, "retrieveItem");
+		new ExecutableCommandNode("a", strife, "setSpecibus", ArgumentType.SPECIBUS);
+		new ExecutableCommandNode("w", strife, "setItem");
+		new ExecutableCommandNode("r", strife, "retrieveItem");
 		
 		this.shortNames.put("Uncarved Cruxite Dowel", "UnCruxDow");
 		
@@ -199,6 +205,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		readPlayer(event.getPlayer());
 		if (tpacks.containsKey(event.getPlayer().getWorld().getName()))
 		{
+			//event.getPlayer().setTexturePack(this.tpacks.get(event.getPlayer().getWorld().getName()));
 			((CraftPlayer) event.getPlayer()).getHandle().a(this.tpacks.get(event.getPlayer().getWorld().getName()), 16);
 		}
 		if (event.getPlayer().getWorld().getName().equals("InnerCircle") || event.getPlayer().getWorld().getName().equals("OuterCircle"))
@@ -300,7 +307,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 							if (sp.inBed)
 							{
 								sp.inBed = false;
-								((CraftPlayer) sp.player).getHandle().a(false, true, false);
+								((CraftPlayer) sp.player).getHandle().a(false, true, false); //TODO Find a Bukkit method to do this!
 								if (sp.player.getWorld().getName().equals("InnerCircle") || sp.player.getWorld().getName().equals("OuterCircle"))
 								{
 									sp.dreamingloc = SburbPlayers.lts(sp.player.getLocation());
@@ -335,6 +342,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	{
 		if (tpacks.containsKey(event.getPlayer().getWorld().getName()))
 		{
+			//event.getPlayer().setTexturePack(this.tpacks.get(event.getPlayer().getWorld().getName()));
 			((CraftPlayer) event.getPlayer()).getHandle().a(this.tpacks.get(event.getPlayer().getWorld().getName()), 16);
 		}
 	}
@@ -424,7 +432,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		}
 		else
 		{
-			if (this.players.containsKey(sender.getName())) CommandParser.runCommand(args, this.root, this.players.get(sender.getName()));
+			if (this.players.containsKey(sender.getName())) CommandParser.runCommand(args, this.root, this.players.get(sender.getName()), sender);
 		}
 		return true;
 	}

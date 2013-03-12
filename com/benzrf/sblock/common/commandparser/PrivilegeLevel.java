@@ -1,4 +1,4 @@
-package com.benzrf.sblock.sburbchat.commandparser;
+package com.benzrf.sblock.common.commandparser;
 
 /**
  * Represents a privilege level.

@@ -1,4 +1,4 @@
-package com.benzrf.sblock.sburbchat.commandparser;
+package com.benzrf.sblock.common.commandparser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,12 +6,14 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 
-import com.benzrf.sblock.sburbchat.User;
+
 
 public class CommandParser
 {
-	public static void runCommand(String[] command, CommandNode root, User sender)
+	
+	public static void runCommand(String[] command, CommandNode root, ExecutorClass toExecute, CommandSender sender)
 	{
 		List<String> lCommand = Arrays.asList(command);
 		Iterator<String> iCommand = lCommand.iterator();
@@ -60,7 +62,7 @@ public class CommandParser
 							args.add(next);
 							
 						}
-						node.invoke(args, sender);
+						node.invoke(args, toExecute);
 						return;
 					}
 				}

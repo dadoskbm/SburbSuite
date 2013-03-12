@@ -2,6 +2,8 @@ package com.benzrf.sblock.sburbchat.commandparser.validators;
 
 import org.bukkit.ChatColor;
 
+import com.benzrf.sblock.common.commandparser.validators.ArgumentValidator;
+
 public class NewChannelArgumentValidator implements ArgumentValidator
 {
 	@Override

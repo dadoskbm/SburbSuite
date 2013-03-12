@@ -1,5 +1,6 @@
 package com.benzrf.sblock.sburbchat.commandparser.validators;
 
+import com.benzrf.sblock.common.commandparser.validators.ArgumentValidator;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 
 public class AccessLevelArgumentValidator implements ArgumentValidator

@@ -1,6 +1,7 @@
 package com.benzrf.sblock.sburbplayers.commandparser.converters;
 
 import com.benzrf.sblock.sburbplayers.SburbPlayers;
+import com.benzrf.sblock.common.commandparser.converters.ArgumentConverter;
 
 public class PlayerArgumentConverter implements ArgumentConverter
 {

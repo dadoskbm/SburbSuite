@@ -1,5 +1,6 @@
 package com.benzrf.sblock.sburbplayers.commandparser.validators;
 
+import com.benzrf.sblock.common.commandparser.validators.ArgumentValidator;
 import com.benzrf.sblock.sburbplayers.SburbPlayers;
 
 public class PlayerArgumentValidator implements ArgumentValidator

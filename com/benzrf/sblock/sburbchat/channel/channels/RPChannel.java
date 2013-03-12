@@ -7,10 +7,10 @@ import java.util.Map;
 
 import org.bukkit.ChatColor;
 
+import com.benzrf.sblock.common.commandparser.PrivilegeLevel;
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
-import com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel;
 
 public class RPChannel extends NickChannel
 {

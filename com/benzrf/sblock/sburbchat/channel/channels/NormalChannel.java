@@ -1,7 +1,5 @@
 package com.benzrf.sblock.sburbchat.channel.channels;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,11 +11,11 @@ import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
 
+import com.benzrf.sblock.common.commandparser.PrivilegeLevel;
 import com.benzrf.sblock.sburbchat.SburbChat;
 import com.benzrf.sblock.sburbchat.User;
 import com.benzrf.sblock.sburbchat.channel.AccessLevel;
 import com.benzrf.sblock.sburbchat.channel.ChannelType;
-import com.benzrf.sblock.sburbchat.commandparser.PrivilegeLevel;
 
 public class NormalChannel implements Channel, Serializable
 {

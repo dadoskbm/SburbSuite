@@ -1,4 +1,4 @@
-package com.benzrf.sblock.sburbchat.commandparser.converters;
+package com.benzrf.sblock.common.commandparser.converters;
 
 public class StringArgumentConverter implements ArgumentConverter
 {
