@@ -8,6 +8,6 @@ public class PlayerArgumentConverter implements ArgumentConverter
 	@Override
 	public Object convertArgument(String arg)
 	{
-		return SburbPlayers.instance.getServer().getPlayer(arg);
+		return SburbPlayers.getInstance().getServer().getPlayer(arg);
 	}
 }

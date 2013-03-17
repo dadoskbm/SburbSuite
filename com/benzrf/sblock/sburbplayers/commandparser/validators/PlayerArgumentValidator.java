@@ -8,6 +8,6 @@ public class PlayerArgumentValidator implements ArgumentValidator
 	@Override
 	public boolean isArgumentValid(String arg)
 	{
-		return SburbPlayers.instance.getServer().getPlayer(arg) != null;
+		return SburbPlayers.getInstance().getServer().getPlayer(arg) != null;
 	}
 }

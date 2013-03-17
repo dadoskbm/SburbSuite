@@ -70,11 +70,12 @@ public class ExecutableCommandNode extends CommandNode
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		for(int i = argTypes.size(); i < args.length; i++)
+		for(int i = argTypes.size() - 1; i < args.length; i++)
 		{
 			sb.append(args[i] + " ");
 		}
 		args[argTypes.size() - 1] = sb.toString();
+		
 		
 		invoke(Arrays.copyOfRange(args, 0, argTypes.size()), toExecute);
 	}

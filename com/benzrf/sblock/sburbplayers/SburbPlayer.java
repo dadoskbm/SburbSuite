@@ -9,6 +9,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.benzrf.sblock.common.commandparser.ExecutorClass;
+import com.benzrf.sblock.sburbplayers.session.SburbSessionManager;
 
 public class SburbPlayer implements Serializable, ExecutorClass
 {
@@ -29,16 +30,40 @@ public class SburbPlayer implements Serializable, ExecutorClass
 	
 	public void sendMessage(String s)
 	{
-		this.player.sendMessage(SburbPlayers.instance.prefix() + s);
+		this.player.sendMessage(SburbPlayers.getInstance().prefix() + s);
 	}
 	
 	public void getInfo(Player p)
 	{
-		SburbPlayer sp = SburbPlayers.instance.getPlayer(p.getName());
+		SburbPlayer sp = SburbPlayers.getInstance().getPlayer(p.getName());
 		if (sp != null)
 		{
 			this.sendMessage(ChatColor.YELLOW + p.getName() + ChatColor.GREEN + " is a " + sp.sclass + " of " + sp.aspect + " who dreams on " + sp.cplanet + " and resides on " + sp.mplanet + " while in the Medium.");
 		}
+	}
+	
+	/**
+	 * Called when the player requests a new Sburb session
+	 * @param other Other player
+	 * @param playerType Player type of the player executing the command, either "client" or "server"
+	 */
+	public void startSession(Player other, String playerType)
+	{
+		if(playerType.equalsIgnoreCase("client"))
+			SburbSessionManager.getSessionManager().startSession(this, SburbPlayers.getInstance().getPlayer(other.getName()));
+		else if(playerType.equalsIgnoreCase("server"));
+			SburbSessionManager.getSessionManager().startSession(SburbPlayers.getInstance().getPlayer(other.getName()), this);
+	}
+	
+	
+	/**
+	 * Kills the session where the given player is the client
+	 * @param clientPlayerToKill Client player of the session to kill
+	 */
+	public void killSession(Player clientPlayerToKill)
+	{
+		if(this.player.hasPermission("sburbplayers.manageSessions"))
+			SburbSessionManager.getSessionManager().killSession(clientPlayerToKill);
 	}
 	
 	public void setSpecibus(String s)
@@ -66,21 +91,89 @@ public class SburbPlayer implements Serializable, ExecutorClass
 		this.player.openInventory(i);
 	}
 	
+	/**
+	 * @return The player's name.
+	 */
+	public String getName()
+	{
+		return player.getName();
+	}
+	
+	/**
+	 * @return The Bukkit Player object associated with this SburbPlayer
+	 */
+    public Player asBukkitPlayer()
+    {
+	    return player;
+    }
+	
 	public void retrieveItem()
 	{
 	}
 	
-	public transient Player player;
-	public SClass sclass;
-	public Aspect aspect;
-	public MPlanet mplanet;
-	public CPlanet cplanet;
-	public String bed;
-	public transient boolean inBed = false;
-	public String sleepingloc = "";
-	public String dreamingloc = "";
-	public ItemStack[] weapons = new ItemStack[9];
-	public ItemStack[] knock = new ItemStack[9];
-	public String abstratus;
+	/**
+	 * @return true if the player is currently in bed.
+	 */
+	public boolean isInBed()
+	{
+		return inBed;
+	}
+	/**
+	 * @param If the player is currently in bed
+	 */
+	public void setInBed(boolean inBed)
+	{
+		this.inBed = inBed;
+	}
+	/**
+	 * @return the player's sleeping location
+	 */
+	public String getSleepingLocation()
+	{
+		return sleepingloc;
+	}
+	/**
+	 * @param The player's sleeping location
+	 */
+	public void setSleepingLocation(String sleepingloc)
+	{
+		this.sleepingloc = sleepingloc;
+	}
+	/**
+	 * @return the player's dreaming location
+	 */
+	public String getDreamingLocation()
+	{
+		return dreamingloc;
+	}
+	/**
+	 * @param The player's dreaming location
+	 */
+	public void setDreamingLocation(String dreamingloc)
+	{
+		this.dreamingloc = dreamingloc;
+	}
+
+	private transient Player player;
+	SClass sclass;
+	Aspect aspect;
+	MPlanet mplanet;
+	CPlanet cplanet;
+	String bed;
+	private transient boolean inBed = false;
+	private String sleepingloc = "";
+	private String dreamingloc = "";
+	ItemStack[] weapons = new ItemStack[9];
+	private ItemStack[] knock = new ItemStack[9];
+	String abstratus;
 	private static final long serialVersionUID = -6947763764629711601L;
+	/**
+	 * @param p
+	 */
+    void setBukkitPlayer(Player p)
+    {
+	    this.player = p;
+	    
+    }
+	
 }

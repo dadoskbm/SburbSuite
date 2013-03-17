@@ -8,6 +8,6 @@ public class SpecibusArgumentValidator implements ArgumentValidator
 	@Override
 	public boolean isArgumentValid(String arg)
 	{
-		return SburbPlayers.instance.abstrata.containsKey(arg);
+		return SburbPlayers.getInstance().getAbstrata().containsKey(arg);
 	}
 }

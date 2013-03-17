@@ -19,10 +19,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
+import org.bukkit.block.Block;
 import org.bukkit.block.Skull;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_4_6.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_5_R1.entity.CraftPlayer;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -46,6 +47,7 @@ import org.yaml.snakeyaml.Yaml;
 import com.benzrf.sblock.common.commandparser.ArgumentType;
 import com.benzrf.sblock.common.commandparser.CommandNode;
 import com.benzrf.sblock.common.commandparser.ExecutableCommandNode;
+import com.benzrf.sblock.sburbplayers.session.SburbSessionManager;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.gson.Gson;
@@ -57,8 +59,8 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	{
 		try
 		{
-			new Yaml().dump(this.towers, new FileWriter("plugins/SburbPlayers/towers.yml"));
-			new Yaml().dump(this.tpacks, new FileWriter("plugins/SburbPlayers/tpacks.yml"));
+			new Yaml().dump(this.towers, new FileWriter(PLUGIN_DIR + "towers.yml"));
+			new Yaml().dump(this.tpacks, new FileWriter(PLUGIN_DIR + "tpacks.yml"));
 			for (Player p : this.getServer().getOnlinePlayers())
 			{
 //				writePlayerSQL(p);
@@ -69,6 +71,9 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		{
 			e.printStackTrace();
 		}
+		
+		//Saves all Sburb sessions
+		SburbSessionManager.getSessionManager().shutdown();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -76,11 +81,17 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	public void onEnable()
 	{
 		getServer().getPluginManager().registerEvents(this, this);
+		File dir =  new File(SburbSessionManager.SESSIONS_DIR);
+		if(!dir.exists())
+		{
+			Logger.getLogger("Minecraft").warning("SburbPlayers and/or sessions directory missing, creating directories.");
+			dir.mkdirs();
+		}
 		try
 		{
-			this.towers = ((HashMap<String, String>) new Yaml().loadAs(new FileReader("plugins/SburbPlayers/towers.yml"), HashMap.class));
-			this.tpacks = ((HashMap<String, String>) new Yaml().loadAs(new FileReader("plugins/SburbPlayers/tpacks.yml"), HashMap.class));
-			String rawAbstrata = readFile("plugins/SburbPlayers/abstrata.spd");
+			this.towers = ((HashMap<String, String>) new Yaml().loadAs(new FileReader(PLUGIN_DIR + "towers.yml"), HashMap.class));
+			this.tpacks = ((HashMap<String, String>) new Yaml().loadAs(new FileReader(PLUGIN_DIR + "tpacks.yml"), HashMap.class));
+			String rawAbstrata = readFile(PLUGIN_DIR + "abstrata.spd");
 			for (String a : rawAbstrata.split("\n"))
 			{
 				this.abstrata.put(a.split(":")[1], a.split(":")[0].split(", "));
@@ -109,9 +120,14 @@ public class SburbPlayers extends JavaPlugin implements Listener
 				e.printStackTrace();
 			}
 		}
+		
 		this.root = new CommandNode("sp");
 		new ExecutableCommandNode("i", this.root, "getInfo", ArgumentType.PLAYER);
 		new ExecutableCommandNode("info", this.root, "getInfo", ArgumentType.PLAYER);
+		
+		//CommandNode session = new CommandNode("session", this.root);
+		//new ExecutableCommandNode("enter", session, "startSession", ArgumentType.PLAYER, ArgumentType.MESSAGE);
+		//new ExecutableCommandNode("kill", session, "killSession", ArgumentType.PLAYER);
 		
 		CommandNode strife = new CommandNode("s", this.root);
 		new ExecutableCommandNode("a", strife, "setSpecibus", ArgumentType.SPECIBUS);
@@ -177,6 +193,10 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event)
 	{
+		Block eventBlock = event.getBlock();
+		if(eventBlock.getType() == Material.COBBLESTONE && SburbSessionManager.getSessionManager().sendMark(eventBlock.getLocation(), getPlayer(event.getPlayer().getName())))
+			event.setCancelled(true);
+			
 		if (event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.ZOMBIE))
 		{
 			event.setCancelled(true);
@@ -216,12 +236,12 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	{
 		if (!this.players.containsKey(p.getName()))
 		{
-			if (new File("plugins/SburbPlayers/u_" + p.getName() + ".spd").exists())
+			if (new File(PLUGIN_DIR + "u_" + p.getName() + ".spd").exists())
 			{
 				try
 				{
-					SburbPlayer sp = this.gson.fromJson(this.readFile("plugins/SburbPlayers/u_" + p.getName() + ".spd"), SburbPlayer.class);
-					sp.player = p;
+					SburbPlayer sp = this.gson.fromJson(readFile(PLUGIN_DIR + "u_" + p.getName() + ".spd"), SburbPlayer.class);
+					sp.setBukkitPlayer(p);
 					this.players.put(p.getName(), sp);
 				}
 				catch (NullPointerException e)
@@ -237,7 +257,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		}
 	}
 	
-	private String readFile(String path) throws IOException
+	private static String readFile(String path) throws IOException
 	{
 		String file;
 		FileInputStream stream = new FileInputStream(new File(path));
@@ -265,7 +285,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	{
 		if (this.players.containsKey(p.getName()))
 		{
-			BufferedWriter w = new BufferedWriter(new FileWriter("plugins/SburbPlayers/u_" + p.getName() + ".spd"));
+			BufferedWriter w = new BufferedWriter(new FileWriter(PLUGIN_DIR + "u_" + p.getName() + ".spd"));
 			w.write(this.gson.toJson(this.players.get(p.getName())));
 			w.flush();
 			w.close();
@@ -294,7 +314,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	{
 		if (this.players.containsKey(event.getPlayer().getName()))
 		{
-			((SburbPlayer)this.players.get(event.getPlayer().getName())).inBed = true;
+			((SburbPlayer)this.players.get(event.getPlayer().getName())).setInBed(true);
 			final String name = event.getPlayer().getName();
 			getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
 				public void run()
@@ -302,22 +322,22 @@ public class SburbPlayers extends JavaPlugin implements Listener
 						if (players.containsKey(name))
 						{
 							SburbPlayer sp = (SburbPlayer) players.get(name);
-							if (sp.inBed)
+							if (sp.isInBed())
 							{
-								sp.inBed = false;
-								((CraftPlayer) sp.player).getHandle().a(false, true, false); //TODO Find a Bukkit method to do this!
-								if (sp.player.getWorld().getName().equals("InnerCircle") || sp.player.getWorld().getName().equals("OuterCircle"))
+								sp.setInBed(false);
+								((CraftPlayer) sp.asBukkitPlayer()).getHandle().a(false, true, false); //TODO Find a Bukkit method to do this!
+								if (sp.asBukkitPlayer().getWorld().getName().equals("InnerCircle") || sp.asBukkitPlayer().getWorld().getName().equals("OuterCircle"))
 								{
-									sp.dreamingloc = SburbPlayers.lts(sp.player.getLocation());
-									sp.player.teleport(SburbPlayers.stl(sp.sleepingloc));
-									sp.player.setAllowFlight(false);
-									sp.player.setFlying(false);
+									sp.setDreamingLocation(SburbPlayers.lts(sp.asBukkitPlayer().getLocation()));
+									sp.asBukkitPlayer().teleport(SburbPlayers.stl(sp.getSleepingLocation()));
+									sp.asBukkitPlayer().setAllowFlight(false);
+									sp.asBukkitPlayer().setFlying(false);
 								}
 								else
 								{
-									sp.sleepingloc = SburbPlayers.lts(sp.player.getLocation());
-									sp.player.teleport(sp.dreamingloc.equals("") ? SburbPlayers.stl((String)SburbPlayers.instance.towers.get(sp.cplanet.toString() + sp.bed)) : SburbPlayers.stl(sp.dreamingloc));
-									sp.player.setAllowFlight(true);
+									sp.setSleepingLocation(SburbPlayers.lts(sp.asBukkitPlayer().getLocation()));
+									sp.asBukkitPlayer().teleport(sp.getDreamingLocation().equals("") ? SburbPlayers.stl((String)SburbPlayers.instance.towers.get(sp.cplanet.toString() + sp.bed)) : SburbPlayers.stl(sp.getDreamingLocation()));
+									sp.asBukkitPlayer().setAllowFlight(true);
 								}
 							}
 						}
@@ -331,7 +351,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	{
 		if (this.players.containsKey(event.getPlayer().getName()))
 		{
-			((SburbPlayer)this.players.get(event.getPlayer().getName())).inBed = false;
+			((SburbPlayer)this.players.get(event.getPlayer().getName())).setInBed(false);
 		}
 	}
 	
@@ -430,7 +450,8 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		}
 		else
 		{
-			if (this.players.containsKey(sender.getName())) root.runCommand(args, this.players.get(sender.getName()), sender);
+			if (this.players.containsKey(sender.getName()))
+				root.runCommand(args, this.players.get(sender.getName()), sender);
 		}
 		return true;
 	}
@@ -473,12 +494,53 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		return prefix;
 	}
 	
-	public static SburbPlayers instance;
+	/**
+	 * @return the instance
+	 */
+	public static SburbPlayers getInstance()
+	{
+		return instance;
+	}
+
+	/**
+	 * @return the used
+	 */
+	public Map<Player, ItemStack> getUsed()
+	{
+		return used;
+	}
+
+	/**
+	 * @return the towers
+	 */
+	public Map<String, String> getTowers()
+	{
+		return towers;
+	}
+
+	/**
+	 * @return the tpacks
+	 */
+	public Map<String, String> getTpacks()
+	{
+		return tpacks;
+	}
+
+	/**
+	 * @return the abstrata
+	 */
+	public Map<String, String[]> getAbstrata()
+	{
+		return abstrata;
+	}
+
+	public static final String PLUGIN_DIR = "plugins/SburbPlayers/";
+	private static SburbPlayers instance;
 	private Map<String, SburbPlayer> players = new HashMap<String, SburbPlayer>();
-	public Map<Player, ItemStack> used = new HashMap<Player, ItemStack>();
-	public Map<String, String> towers = new HashMap<String, String>();
-	public Map<String, String> tpacks = new HashMap<String, String>();
-	public Map<String, String[]> abstrata = new HashMap<String, String[]>();
+	private Map<Player, ItemStack> used = new HashMap<Player, ItemStack>();
+	private Map<String, String> towers = new HashMap<String, String>();
+	private Map<String, String> tpacks = new HashMap<String, String>();
+	private Map<String, String[]> abstrata = new HashMap<String, String[]>();
 	BiMap<String, String> shortNames = HashBiMap.create();
 	private CommandNode root;
 	private String prefix = ChatColor.WHITE + "[" + ChatColor.GREEN + "Sburb" + ChatColor.RED + "Players" + ChatColor.WHITE + "] ";
