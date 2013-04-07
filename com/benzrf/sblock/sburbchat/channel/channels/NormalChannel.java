@@ -37,9 +37,20 @@ public class NormalChannel implements Channel, Serializable
 	}
 	
 	@Override
-	public String getPrefix()
+	public String getPrefix(User sender)
 	{
-		return ChatColor.WHITE + "[" + ChatColor.GOLD + this.name + ChatColor.WHITE + "] ";
+		
+		ChatColor color = ChatColor.GOLD;
+		if (sender.getName().equals(this.owner))
+		{
+			color = ChatColor.AQUA;
+		}
+		else if (this.modList.contains(sender.getName()))
+		{
+			color = ChatColor.RED;
+		}
+
+		return ChatColor.WHITE + "[" + color + this.name + ChatColor.WHITE + "] ";
 	}
 
 	/* (non-Javadoc)
@@ -98,7 +109,7 @@ public class NormalChannel implements Channel, Serializable
 			if (!banList.contains(sender.getName()) || sender.getName().equals(owner))
 			{
 				this.listening.add(sender);
-				this.sendToAll(joinMsg);
+				this.sendToAll(joinMsg, sender);
 				return true;
 			}
 			else
@@ -112,7 +123,7 @@ public class NormalChannel implements Channel, Serializable
 			if (modList.contains(sender.getName()))
 			{
 				this.listening.add(sender);
-				this.sendToAll(joinMsg);
+				this.sendToAll(joinMsg, sender);
 				return true;
 			}
 			else
@@ -125,7 +136,7 @@ public class NormalChannel implements Channel, Serializable
 			if (approvedList.contains(sender.getName()))
 			{
 				this.listening.add(sender);
-				this.sendToAll(joinMsg);
+				this.sendToAll(joinMsg, sender);
 				return true;
 			}
 			else if (banList.contains(sender.getName()))
@@ -136,7 +147,7 @@ public class NormalChannel implements Channel, Serializable
 			else
 			{
 				sender.sendMessage(ChatColor.GREEN + "Your request to join " + ChatColor.GOLD + this.name + ChatColor.GREEN + " has been sent.");
-				this.sendToAll(ChatColor.YELLOW + sender.getName() + " has requested to join " + ChatColor.GOLD + this.getName() + ChatColor.YELLOW + "!");
+				this.sendToAll(ChatColor.YELLOW + sender.getName() + " has requested to join " + ChatColor.GOLD + this.getName() + ChatColor.YELLOW + "!", sender);
 				return false;
 			}
 		}
@@ -146,7 +157,7 @@ public class NormalChannel implements Channel, Serializable
 	@Override
 	public void userLeave(User sender)
 	{
-		this.sendToAll(this.getLeaveChatMessage(sender));
+		this.sendToAll(this.getLeaveChatMessage(sender), sender);
 		this.listening.remove(sender);
 	}
 	
@@ -196,27 +207,9 @@ public class NormalChannel implements Channel, Serializable
 			m = ChatColor.stripColor(m);
 		}
 		m = (m.startsWith("\\@") ? m.substring(1) : m);
-		this.sendToAll(this.getChatPrefix(sender, m) + ((m.startsWith("\\#") || m.startsWith("#")) ? m.substring(1) : m));
+		this.sendToAll(sender.getDisplayName(m.startsWith("#")) + ((m.startsWith("\\#") || m.startsWith("#")) ? m.substring(1) : m), sender);
 	}
 	
-	@Override
-	public String getChatPrefix(User sender, String message)
-	{
-		ChatColor color = ChatColor.WHITE;
-		if (sender.getName().equals(this.owner))
-		{
-			color = ChatColor.AQUA;
-		}
-		else if (this.modList.contains(sender.getName()))
-		{
-			color = ChatColor.RED;
-		}
-		else if (sender.hasPermission("sburbchat.gname"))
-		{
-			color = ChatColor.GREEN;
-		}
-		return (message.startsWith("#") ? "* " : "<") + color + sender.getDisplayName() + ChatColor.WHITE + (message.startsWith("#") ? "" : "> ");
-	}
 	
 	@Override
 	public void setNick(String nick, User sender)
@@ -242,7 +235,7 @@ public class NormalChannel implements Channel, Serializable
 		if (sender.getName().equals(owner) && !modList.contains(user.getName()))
 		{
 			this.modList.add(user.getName());
-			this.sendToAll(ChatColor.YELLOW + user.getName() + " is now a mod in " + ChatColor.GOLD + this.name + ChatColor.YELLOW + "!");
+			this.sendToAll(ChatColor.YELLOW + user.getName() + " is now a mod in " + ChatColor.GOLD + this.name + ChatColor.YELLOW + "!", sender);
 			user.sendMessage(ChatColor.GREEN + "You are now a mod in " + ChatColor.GOLD + this.name + ChatColor.GREEN + "!");
 		}
 		else if (!sender.getName().equals(owner))
@@ -267,7 +260,7 @@ public class NormalChannel implements Channel, Serializable
 		if (sender.getName().equals(this.owner) && this.modList.contains(user.getName()))
 		{
 			this.modList.remove(user.getName());
-			this.sendToAll(ChatColor.YELLOW + user.getName() + " is no longer a mod in " + ChatColor.GOLD + this.name + ChatColor.YELLOW + "!");
+			this.sendToAll(ChatColor.YELLOW + user.getName() + " is no longer a mod in " + ChatColor.GOLD + this.name + ChatColor.YELLOW + "!", sender);
 			user.sendMessage(ChatColor.RED + "You are no longer a mod in " + ChatColor.GOLD + this.name + ChatColor.RED + "!");
 		}
 		else if (!sender.getName().equals(this.owner))
@@ -287,7 +280,7 @@ public class NormalChannel implements Channel, Serializable
 		{
 			this.listening.remove(user);
 			user.kickFrom(this);
-			this.sendToAll(ChatColor.YELLOW + user.getName() + " has been kicked from " + ChatColor.GOLD + this.getName() + ChatColor.YELLOW + "!");
+			this.sendToAll(ChatColor.YELLOW + user.getName() + " has been kicked from " + ChatColor.GOLD + this.getName() + ChatColor.YELLOW + "!", sender);
 		}
 		else if (!modList.contains(sender.getName()))
 		{
@@ -307,7 +300,7 @@ public class NormalChannel implements Channel, Serializable
 			this.banList.add(user.getName());
 			this.listening.remove(user);
 			user.banFrom(this);
-			this.sendToAll(ChatColor.YELLOW + user.getName() + " has been banned from " + ChatColor.GOLD + this.getName() + ChatColor.YELLOW + "!");
+			this.sendToAll(ChatColor.YELLOW + user.getName() + " has been banned from " + ChatColor.GOLD + this.getName() + ChatColor.YELLOW + "!", sender);
 		}
 		else if (!this.modList.contains(sender.getName()))
 		{
@@ -326,7 +319,7 @@ public class NormalChannel implements Channel, Serializable
 		{
 			this.banList.remove(user.getName());
 			user.sendMessage(ChatColor.GREEN + "You have been unbanned from " + ChatColor.GOLD + this.getName() + ChatColor.GREEN + "!");
-			this.sendToAll(ChatColor.YELLOW + user.getName() + " has been unbanned from " + ChatColor.GOLD + this.getName() + ChatColor.YELLOW + "!");
+			this.sendToAll(ChatColor.YELLOW + user.getName() + " has been unbanned from " + ChatColor.GOLD + this.getName() + ChatColor.YELLOW + "!", sender);
 		}
 		else if (!this.modList.contains(sender.getName()))
 		{
@@ -440,7 +433,7 @@ public class NormalChannel implements Channel, Serializable
 		}
 		else
 		{
-			this.sendToAll(ChatColor.AQUA + "Channel " + ChatColor.GOLD + this.name + ChatColor.AQUA + " is being disbanded!");
+			this.sendToAll(ChatColor.AQUA + "Channel " + ChatColor.GOLD + this.name + ChatColor.AQUA + " is being disbanded!", sender);
 			for (User u : this.listening)
 			{
 				u.kickFrom(this);
@@ -460,7 +453,7 @@ public class NormalChannel implements Channel, Serializable
     	if(modList.contains(sender.getName()))
     	{
     		this.colorAccess = level;
-    		this.sendToAll(ChatColor.GREEN + "Chat colors are now permitted for " + ChatColor.AQUA + level.group() + ChatColor.GREEN + ".");
+    		this.sendToAll(ChatColor.GREEN + "Chat colors are now permitted for " + ChatColor.AQUA + level.group() + ChatColor.GREEN + ".", sender);
     	}
     	else
 	{
@@ -486,13 +479,13 @@ public class NormalChannel implements Channel, Serializable
 		return this.listening;
 	}
 	
-	protected void sendToAll(String s)
+	protected void sendToAll(String s, User sender)
 	{
 		for (User u : this.listening)
 		{
 			u.sendMessageFromChannel(s, this);
 		}
-		Logger.getLogger("Minecraft").info(ChatColor.stripColor(this.getPrefix() + s));
+		Logger.getLogger("Minecraft").info(ChatColor.stripColor(this.getPrefix(sender) + s));
 	}
 	
 	@Override

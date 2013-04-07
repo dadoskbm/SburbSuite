@@ -132,15 +132,15 @@ public class User implements ExecutorClass
 		{
 			if (ChatColor.stripColor(s).toLowerCase().indexOf(this.getName().toLowerCase()) > 3)
 			{
-				this.pthis.sendMessage(c.getPrefix() + ChatColor.BLUE + "{!} " + ChatColor.WHITE + s);
+				this.pthis.sendMessage(c.getPrefix(this) + ChatColor.BLUE + "{!} " + ChatColor.WHITE + s);
 				// this.pthis.sendBlockChange(this.pthis.getLocation().add(0, 2, 0), Material.NOTE_BLOCK, (byte) 0);
 				// this.pthis.playNote(this.pthis.getLocation().add(0, 2, 0), (byte) 0, (byte) 6);
 				// this.pthis.sendBlockChange(this.pthis.getLocation().add(0, 2, 0), this.pthis.getLocation().add(0, 2, 0).getBlock().getType(), this.pthis.getLocation().add(0, 2, 0).getBlock().getData());
-				this.pthis.playEffect(this.pthis.getLocation(), Effect.GHAST_SHOOT, 0);
+				this.pthis.playEffect(this.pthis.getLocation(), Effect.BOW_FIRE, 0);
 			}
 			else
 			{
-				this.pthis.sendMessage(c.getPrefix() + s);
+				this.pthis.sendMessage(c.getPrefix(this) + s);
 			}
 		}
 	}
@@ -208,9 +208,31 @@ public class User implements ExecutorClass
 	{
 		return this.pthis.getName();
 	}
-	public String getDisplayName()
+	public String getDisplayName(boolean isThirdPerson)
 	{
-		return this.hasPermission("sburbchat.bnick") ? this.pthis.getDisplayName() : this.getName();
+		ChatColor colorP = ChatColor.WHITE;
+		ChatColor colorW = ChatColor.WHITE;
+
+		if (this.hasPermission("sburbchat.darkred"))
+			colorP = ChatColor.DARK_RED;
+		else if (this.hasPermission("sburbchat.blue"))
+			colorP = ChatColor.BLUE;
+		else if (this.hasPermission("sburbchat.gold"))
+			colorP = ChatColor.GOLD;
+		else if (this.hasPermission("sburbchat.green"))
+			colorP = ChatColor.GREEN;
+		
+		if (pthis.getWorld().getName().equalsIgnoreCase("earth"))
+			colorW = ChatColor.DARK_GREEN;
+		else if (pthis.getWorld().getName().equalsIgnoreCase("innercircle"))
+			colorW = ChatColor.YELLOW;
+		else if (pthis.getWorld().getName().equalsIgnoreCase("outercircle"))
+			colorW = ChatColor.DARK_PURPLE;
+		else if (pthis.getWorld().getName().equalsIgnoreCase("furthestring"))
+			colorW = ChatColor.DARK_GRAY;
+		
+		return (isThirdPerson ? "* " : colorW + "<") + colorP + pthis.getName() + ChatColor.WHITE + (isThirdPerson ? "" : colorW + "> " + ChatColor.WHITE);
+		//return this.hasPermission("sburbchat.bnick") ? this.pthis.getDisplayName() : this.getName();
 	}
 	
 	public Player getPlayer()
@@ -324,7 +346,7 @@ public class User implements ExecutorClass
 		StringBuilder ul = new StringBuilder();
 		for (User u : this.current.getUsers())
 		{
-			ul.append(ChatColor.WHITE).append(", ").append(this.current.getChatPrefix(u, "").replace("> ", "").replace("<", "")); 
+			ul.append(ChatColor.WHITE).append(", ").append(this.getDisplayName(false).replace("> ", "").replace("<", "")); 
 		}
 		this.pthis.sendMessage(ul.toString().substring(4));
 	}
@@ -459,6 +481,12 @@ public class User implements ExecutorClass
 			ul.append(ChatColor.WHITE).append(", ").append(c.equals(this.current) ? ChatColor.GREEN : ChatColor.GOLD).append(c.getName()); 
 		}
 		this.pthis.sendMessage(ul.toString().substring(4));
+	}
+	
+	public String getPlayerWorld(Player p)
+	{
+		String currentWorld = p.getWorld().getName();
+		return currentWorld;
 	}
 	
 	private Player pthis;

@@ -16,24 +16,6 @@ public class NickChannel extends NormalChannel
 		super(name, listeningAccess, sendingAccess, creator);
 	}
 	
-	@Override
-	public String getChatPrefix(User sender, String message)
-	{
-		ChatColor color = ChatColor.WHITE;
-		if (sender.getName().equals(this.owner))
-		{
-			color = ChatColor.AQUA;
-		}
-		else if (this.modList.contains(sender.getName()))
-		{
-			color = ChatColor.RED;
-		}
-		else if (sender.hasPermission("sburbchat.gname"))
-		{
-			color = ChatColor.GREEN;
-		}
-		return (message.startsWith("#") ? "* " : "<") + color + (nickMap.containsKey(sender.getName()) ? nickMap.get(sender.getName()) : sender.getDisplayName()) + ChatColor.WHITE + (message.startsWith("#") ? "" : "> ");
-	}
 	
 	@Override
 	public void setNick(String nick, User sender)
@@ -41,7 +23,7 @@ public class NickChannel extends NormalChannel
 		if (!this.nickMap.containsValue(nick))
 		{
 			this.nickMap.put(sender.getName(), nick);
-			this.sendToAll(ChatColor.YELLOW + sender.getName() + " has set their nick to " + ChatColor.DARK_BLUE + nick + ChatColor.YELLOW + "!");
+			this.sendToAll(ChatColor.YELLOW + sender.getName() + " has set their nick to " + ChatColor.DARK_BLUE + nick + ChatColor.YELLOW + "!", sender);
 		}
 		else
 		{
@@ -55,7 +37,7 @@ public class NickChannel extends NormalChannel
 		if (this.nickMap.containsKey(sender.getName()))
 		{
 			this.nickMap.remove(sender.getName());
-			this.sendToAll(ChatColor.YELLOW + sender.getName() + " no longer has a nick!");
+			this.sendToAll(ChatColor.YELLOW + sender.getName() + " no longer has a nick!", sender);
 		}
 		else
 		{

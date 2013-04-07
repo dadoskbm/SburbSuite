@@ -23,7 +23,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Skull;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_5_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_5_R2.entity.CraftPlayer;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -73,7 +73,8 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		}
 		
 		//Saves all Sburb sessions
-		SburbSessionManager.getSessionManager().shutdown();
+		if(sessionManager != null)
+			sessionManager.shutdown();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -81,6 +82,16 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	public void onEnable()
 	{
 		getServer().getPluginManager().registerEvents(this, this);
+		try
+		{
+			sessionManager = new SburbSessionManager();
+		}
+		catch(IOException e)
+		{
+			Logger.getLogger("Minecraft").severe("Error starting session manager!");
+			e.printStackTrace();
+			this.getServer().getPluginManager().disablePlugin(this);
+		}
 		File dir =  new File(SburbSessionManager.SESSIONS_DIR);
 		if(!dir.exists())
 		{
@@ -125,9 +136,10 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		new ExecutableCommandNode("i", this.root, "getInfo", ArgumentType.PLAYER);
 		new ExecutableCommandNode("info", this.root, "getInfo", ArgumentType.PLAYER);
 		
-		//CommandNode session = new CommandNode("session", this.root);
-		//new ExecutableCommandNode("enter", session, "startSession", ArgumentType.PLAYER, ArgumentType.MESSAGE);
-		//new ExecutableCommandNode("kill", session, "killSession", ArgumentType.PLAYER);
+		CommandNode session = new CommandNode("session", this.root);
+		new ExecutableCommandNode("enter", session, "startSession", ArgumentType.PLAYER, ArgumentType.MESSAGE);
+		new ExecutableCommandNode("kill", session, "killSession", ArgumentType.PLAYER);
+		new ExecutableCommandNode("tp", session, "teleport");
 		
 		CommandNode strife = new CommandNode("s", this.root);
 		new ExecutableCommandNode("a", strife, "setSpecibus", ArgumentType.SPECIBUS);
@@ -194,7 +206,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	public void onBlockPlace(BlockPlaceEvent event)
 	{
 		Block eventBlock = event.getBlock();
-		if(eventBlock.getType() == Material.COBBLESTONE && SburbSessionManager.getSessionManager().sendMark(eventBlock.getLocation(), getPlayer(event.getPlayer().getName())))
+		if(eventBlock.getType() == Material.COBBLESTONE && sessionManager.sendMark(eventBlock.getLocation(), getPlayer(event.getPlayer().getName())))
 			event.setCancelled(true);
 			
 		if (event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.ZOMBIE))
@@ -494,6 +506,10 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		return prefix;
 	}
 	
+	public SburbSessionManager getSessionManager()
+	{
+		return sessionManager;
+	}
 	/**
 	 * @return the instance
 	 */
@@ -534,7 +550,9 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		return abstrata;
 	}
 
+	public static final int TICKS_PER_SECOND = 20;
 	public static final String PLUGIN_DIR = "plugins/SburbPlayers/";
+	private SburbSessionManager sessionManager;
 	private static SburbPlayers instance;
 	private Map<String, SburbPlayer> players = new HashMap<String, SburbPlayer>();
 	private Map<Player, ItemStack> used = new HashMap<Player, ItemStack>();

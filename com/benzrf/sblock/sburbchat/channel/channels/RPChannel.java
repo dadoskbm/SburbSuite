@@ -52,9 +52,6 @@ public class RPChannel extends NickChannel
 			return super.getJoinChatMessage(sender);
 		}
     }
-	/* (non-Javadoc)
-     * @see com.benzrf.sblock.sburbchat.channel.channels.Channel#getLeaveChatMessage()
-     */
 
 	@Override
 	public void setChat(String m, User sender)
@@ -95,7 +92,12 @@ public class RPChannel extends NickChannel
 		m = sender.hasPermission("sburbchat.chatcolor") ? m.replaceAll("&([0-9a-fk-or])", "") : m;
 		m = (m.startsWith("\\@") ? m.substring(1) : m);
 		Quirker q = canonNicks.get(this.nickMap.get(sender.getName()));
-		this.sendToAll(this.getChatPrefix(sender, m) + (m.startsWith("\\#") ? q.apply(m.substring(1)) : (m.startsWith("#") ? q.applyColor(m.substring(1)) : q.apply(m))));
+		this.sendToAll(this.getChatPrefix(m.startsWith("#"), sender) + (m.startsWith("\\#") ? q.apply(m.substring(1)) : (m.startsWith("#") ? q.applyColor(m.substring(1)) : q.apply(m))), sender);
+	}
+	
+	private String getChatPrefix(boolean isThirdPerson, User sender)
+	{
+		return (isThirdPerson ? "* " : "<") + nickMap.get(sender.getName()) + (isThirdPerson ? "" : ChatColor.WHITE + "> ");
 	}
 	
 	@Override
@@ -109,7 +111,7 @@ public class RPChannel extends NickChannel
 				if (!this.nickMap.containsValue(nick))
 				{
 					this.nickMap.put(sender.getName(), nick);
-					this.sendToAll(ChatColor.YELLOW + sender.getName() + " has set their nick to " + ChatColor.DARK_BLUE + nick + ChatColor.YELLOW + "!");
+					this.sendToAll(ChatColor.YELLOW + sender.getName() + " has set their nick to " + ChatColor.DARK_BLUE + nick + ChatColor.YELLOW + "!", sender);
 				}
 				else
 				{

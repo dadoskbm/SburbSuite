@@ -28,11 +28,11 @@ import com.google.gson.Gson;
  */
 public final class SburbSessionManager
 {
-	private static SburbSessionManager theManager;
 	private Set<SburbSession> sessions;
 	private Map<SburbPlayer, SburbSession> clients, servers;
 	public static final String SESSIONS_DIR = SburbPlayers.PLUGIN_DIR + "sessions/";
-	private SburbSessionManager() throws IOException
+	
+	public SburbSessionManager() throws IOException
 	{
 		Gson gson = new Gson();
 		sessions = new HashSet<SburbSession>();
@@ -50,9 +50,11 @@ public final class SburbSessionManager
             }
 			
 		});
+		System.out.println("Entries: " + entries.length);
 		for(File file : entries)
 		{
 			SburbSession newSession = gson.fromJson(new FileReader(file), SburbSession.class);
+			System.out.printf("Entry %s produces JSON object %s", file.getName(), newSession);
 			newSession.loadRefs();
 			sessions.add(newSession);
 			clients.put(newSession.getClientPlayer(), newSession);
@@ -60,21 +62,24 @@ public final class SburbSessionManager
 		}
 	}
 	
+	/**
+	 * Returns the session object of which the given player is the client
+	 * @param name Player to search
+	 * @return The player's client session, or null if the player is not a client in any session.
+	 */
 	SburbSession getClientSession(SburbPlayer name)
 	{
 		return clients.get(name);
 	}
 	
+	/**
+	 * Returns the session object of which the given player is the server
+	 * @param name Player to search
+	 * @return The player's server session, or null if the player is not a server in any session.
+	 */
 	SburbSession getServerSession(SburbPlayer name)
 	{
 		return servers.get(name);
-	}
-	/**
-	 * @return The plugin's session manager.
-	 */
-	public static SburbSessionManager getSessionManager()
-	{
-		return theManager;
 	}
 	
 	/**
@@ -93,13 +98,12 @@ public final class SburbSessionManager
 				Logger.getLogger("Sburb").severe("Error saving session file!: " + e.toString());
 			}
 		}
-		theManager = null;
 	}
 
 	/**
 	 * Starts a new session
-	 * @param sburbPlayer
-	 * @param player
+	 * @param client Player who will act as the client in this session
+	 * @param server Player who will act as the server in this session
 	 */
     public void startSession(SburbPlayer client, SburbPlayer server)
     {
@@ -137,19 +141,6 @@ public final class SburbSessionManager
     		return false;
     }
     
-    static
-    {
-    	try
-    	{
-    		theManager = new SburbSessionManager();
-    	}
-    	catch(IOException e)
-    	{
-    		Logger.getLogger("Minecraft").severe("Could not start session manager! Shutting down plugin");
-    		Bukkit.getServer().getPluginManager().disablePlugin(SburbPlayers.getInstance());
-    		e.printStackTrace();
-    	}
-    }
 
 	/**
 	 * Kills the session where the given player is the client
@@ -164,5 +155,23 @@ public final class SburbSessionManager
 	    clients.remove(sessionToKill.getClientPlayer());
 	    servers.remove(sessionToKill.getServerPlayer());
 	    sessionToKill.kill();
+    }
+
+	/**
+	 * @param sburbPlayer
+	 */
+    public void teleport(SburbPlayer serverPlayer)
+    {
+    	SburbSession serverSession = servers.get(serverPlayer);
+    	if(serverSession != null)
+    	{
+    	    if(!servers.get(serverPlayer).isServerInEditMode())
+    	    	servers.get(serverPlayer).teleportIn();
+    	    else
+    	    	servers.get(serverPlayer).teleportOut();
+    	}
+    	else
+    		serverPlayer.sendMessage("You are not a server player in a session");
+	    
     }
 }

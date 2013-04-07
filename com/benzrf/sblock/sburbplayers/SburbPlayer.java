@@ -50,9 +50,14 @@ public class SburbPlayer implements Serializable, ExecutorClass
 	public void startSession(Player other, String playerType)
 	{
 		if(playerType.equalsIgnoreCase("client"))
-			SburbSessionManager.getSessionManager().startSession(this, SburbPlayers.getInstance().getPlayer(other.getName()));
+			SburbPlayers.getInstance().getSessionManager().startSession(this, SburbPlayers.getInstance().getPlayer(other.getName()));
 		else if(playerType.equalsIgnoreCase("server"));
-			SburbSessionManager.getSessionManager().startSession(SburbPlayers.getInstance().getPlayer(other.getName()), this);
+			SburbPlayers.getInstance().getSessionManager().startSession(SburbPlayers.getInstance().getPlayer(other.getName()), this);
+	}
+	
+	public void teleport()
+	{
+		SburbPlayers.getInstance().getSessionManager().teleport(this);
 	}
 	
 	
@@ -63,7 +68,7 @@ public class SburbPlayer implements Serializable, ExecutorClass
 	public void killSession(Player clientPlayerToKill)
 	{
 		if(this.player.hasPermission("sburbplayers.manageSessions"))
-			SburbSessionManager.getSessionManager().killSession(clientPlayerToKill);
+			SburbPlayers.getInstance().getSessionManager().killSession(clientPlayerToKill);
 	}
 	
 	public void setSpecibus(String s)
@@ -106,6 +111,17 @@ public class SburbPlayer implements Serializable, ExecutorClass
     {
 	    return player;
     }
+	
+	/**
+	 * Sets the Bukkit player object associated with this SburbPlayer. This should be called right after
+	 * deserialization, but never be called in any other situation
+	 * @param p Player to set
+	 */
+	void setBukkitPlayer(Player p)
+	{
+	    this.player = p;
+	    
+	}
 	
 	public void retrieveItem()
 	{
@@ -167,13 +183,5 @@ public class SburbPlayer implements Serializable, ExecutorClass
 	private ItemStack[] knock = new ItemStack[9];
 	String abstratus;
 	private static final long serialVersionUID = -6947763764629711601L;
-	/**
-	 * @param p
-	 */
-    void setBukkitPlayer(Player p)
-    {
-	    this.player = p;
-	    
-    }
 	
 }

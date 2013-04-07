@@ -12,3 +12,11 @@ commands:
    default: false
   sburbchat.bnick:
    default: false
+  sburbchat.darkred:
+   default: false
+  sburbchat.blue:
+   default: false
+  sburbchat.gold:
+   default: false
+  sburbchat.green:
+   default: false

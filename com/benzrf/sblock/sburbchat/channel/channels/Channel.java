@@ -10,8 +10,7 @@ import com.benzrf.sblock.sburbchat.channel.ChannelType;
 public interface Channel
 {
 	public String getName();
-	public String getPrefix();
-	public String getChatPrefix(User sender, String message);
+	public String getPrefix(User sender);
 	public String getJoinChatMessage(User sender);
 	public String getLeaveChatMessage(User sender);
 	public AccessLevel getSAcess();

@@ -9,6 +9,9 @@ import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import com.benzrf.sblock.sburbplayers.SburbPlayer;
 import com.benzrf.sblock.sburbplayers.SburbPlayers;
@@ -46,7 +49,7 @@ import com.google.gson.Gson;
  * 
  * A Sburb session consists of two players, a client and a server player. The server is responsible
  * for modifying the client's house and placing machines. The client executes the machines and is the
- * main one responsible for allowing both players to enter their session.
+ * main one responsible for allowing both players to enter their session.<p>
  * 
  * Another main responsibility of this class is to keep track of the location of the client's house, whose boundaries
  * are defined at the time the session is initiated. It will also keep track of a "ground floor", to assist
@@ -55,16 +58,18 @@ import com.google.gson.Gson;
  * @author FireNG
  *
  */
-class SburbSession implements Serializable
+public class SburbSession implements Serializable
 {
 	private static final long serialVersionUID = -7964982032724530818L;
     private String cName, sName;
     private transient SburbPlayer client, server;
     private Location[] cuboidPoints = new Location[2];
     private transient File sessionFile;
+    private BukkitTask locationChecker;
     private int totalArea = -1;
     private int groundFloorLevel = -1;
     private Location serverPrevLocation = null;
+    private boolean serverInEditMode = false;
     private boolean isActive = false;
     private transient boolean markingMode = false;
 	
@@ -148,6 +153,68 @@ class SburbSession implements Serializable
     		client = SburbPlayers.getInstance().getPlayer(cName);
     	if(server == null)
     		server = SburbPlayers.getInstance().getPlayer(sName);
+    	if(sessionFile == null)
+    		sessionFile = new File(SburbSessionManager.SESSIONS_DIR + "s_" + cName + "_" + sName + ".sps");
+    }
+    
+    /**
+     * Determines if a point is inside the client's house
+     * @param loc Location to check
+     * @return true if the given location is inside the boundaries of the client's house
+     */
+    boolean isInsideHouse(Location loc)
+    {
+    	if(loc.getBlockX() >= Math.min(cuboidPoints[0].getBlockX(), cuboidPoints[1].getBlockX())
+    			&& loc.getBlockX() <= Math.max(cuboidPoints[0].getBlockX(), cuboidPoints[1].getBlockX())
+    			&& loc.getBlockY() >= Math.min(cuboidPoints[0].getBlockY(), cuboidPoints[1].getBlockY())
+    	    	&& loc.getBlockY() <= Math.max(cuboidPoints[0].getBlockY(), cuboidPoints[1].getBlockY())
+    	    	&& loc.getBlockZ() >= Math.min(cuboidPoints[0].getBlockZ(), cuboidPoints[1].getBlockZ())
+    	    	&& loc.getBlockZ() <= Math.max(cuboidPoints[0].getBlockZ(), cuboidPoints[1].getBlockZ()))
+    		return true;
+    	else
+    		return false;
+    }
+    
+    /**
+     * Teleports the server player to the client's house, granting limited creative powers inside the
+     * house's boundaries. However, the server is not permitted to walk out, and must teleport out in
+     * order to resume normal gameplay
+     */
+    void teleportIn()
+    {
+    	serverPrevLocation = server.asBukkitPlayer().getLocation();
+    	
+    	Location teleportLocation = getOpenLocation();
+    	if(teleportLocation != null)
+    	{
+    		server.asBukkitPlayer().teleport(teleportLocation);
+    		serverInEditMode = true;
+    		locationChecker = this.new LocationCheckTask().runTaskTimer(SburbPlayers.getInstance(), SburbPlayers.TICKS_PER_SECOND, SburbPlayers.TICKS_PER_SECOND);
+    		sendToServer("Teleportation sucuessful");
+    	}
+    	else
+    		sendToServer(ChatColor.RED + "You could not be teleported to your client's house!");
+    }
+    
+    /**
+     * Called when the server player wishes to stop editing the client's house. The server then
+     * returns to their previous location and resumes normal gameplay.
+     */
+    void teleportOut()
+    {
+    	serverInEditMode = false;
+    	locationChecker.cancel();
+    	server.asBukkitPlayer().teleport(serverPrevLocation);
+    	serverPrevLocation = null;
+    	sendToServer("Teleportation sucuessful");
+    }
+    
+    /**
+     * @return true if the server is currently in "edit mode" at their client's house
+     */
+    boolean isServerInEditMode()
+    {
+    	return serverInEditMode;
     }
     
     /**
@@ -167,13 +234,42 @@ class SburbSession implements Serializable
 	    	return totalArea;
 	    }
     }
-
-	void saveSession() throws IOException
+    
+    /**
+     * Returns an open location inside the client's house to teleport the client to.
+     * @return A Location representing a feasible location to teleport the client, or null if no location was found.
+     */
+    private Location getOpenLocation()
     {
+    	for(int x = Math.min(cuboidPoints[0].getBlockX(), cuboidPoints[1].getBlockY()); x <= Math.max(cuboidPoints[0].getBlockX(), cuboidPoints[1].getBlockX()); x++)
+    	{
+    		for(int z = Math.min(cuboidPoints[0].getBlockZ(), cuboidPoints[1].getBlockZ()); z <= Math.max(cuboidPoints[0].getBlockZ(),cuboidPoints[1].getBlockZ()); z++)
+    		{
+    			Location thisLoc = new Location(client.asBukkitPlayer().getWorld(), x, groundFloorLevel + 1, z);
+    			if(thisLoc.getBlock().getType() == Material.AIR
+    					&& thisLoc.add(0, 1, 0).getBlock().getType() == Material.AIR)
+    			{
+    				return thisLoc;
+    			}
+    		}
+    	}
+    	
+    	return null;
+    }
+
+	void saveSession() throws IOException //FIXME Data cannot be saved in its current state. Something in the Location class is referencing itself, causing stack overflow.
+    {
+		try
+		{
     	FileOutputStream out = new FileOutputStream(sessionFile);
+    	System.out.println(new Gson().toJson(this));
     	out.write(new Gson().toJson(this).getBytes(Charset.defaultCharset()));
     	out.flush();
     	out.close();
+		}catch(StackOverflowError e)
+		{
+			Logger.getLogger("Minecraft").severe("Stack overflow error!");
+		}
     }
     
     /**
@@ -232,6 +328,31 @@ class SburbSession implements Serializable
     	sendToBoth(ChatColor.RED + "Your Sburb session has been terminated");
     	if(!sessionFile.delete())
     		Logger.getLogger("Sburb").severe("Could not delete session file " + sessionFile.getName() + "!");
+    	
+    }
+    
+    /**
+     * Task to intermittently check the server player's location to make sure that they have not left the boundaries of
+     * the client's house
+     * @author FireNG
+     *
+     */
+    private class LocationCheckTask extends BukkitRunnable
+    {
+
+		/* (non-Javadoc)
+		 * @see java.lang.Runnable#run()
+		 */
+        @Override
+        public void run()
+        {
+	        if(!isInsideHouse(server.asBukkitPlayer().getLocation()))
+	        {	
+	        	sendToServer(ChatColor.RED + "GET THE FUCK BACK!");
+	        	server.asBukkitPlayer().teleport(getOpenLocation());
+	        }
+	        
+        }
     	
     }
 
