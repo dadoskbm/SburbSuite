@@ -38,6 +38,13 @@ public class SburbChat extends JavaPlugin
 			{
 				User.removePlayer(p);
 			}
+			catch(FileNotFoundException e)
+			{
+				if(System.getProperty("os.name").contains("Win"))
+					Logger.getLogger("Minecraft").warning("A FileNotFoundException was generated when saving player data. This may be due to a Windows I/O bug. Reason #413 why Linux is better.");
+				else
+					e.printStackTrace();
+			}
 			catch (IOException e)
 			{
 				Logger.getLogger("Minecraft").severe(this.prefix + "Error saving userdata for " + p.getName() + ":");

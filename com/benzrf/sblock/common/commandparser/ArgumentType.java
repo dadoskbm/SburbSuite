@@ -39,7 +39,9 @@ public enum ArgumentType
 	ACCESS_LEVEL("accesslevel", new AccessLevelArgumentValidator(), new AccessLevelArgumentConverter(), AccessLevel.class),
 	CHANNEL_TYPE("channeltype", new ChannelTypeArgumentValidator(), new ChannelTypeArgumentConverter(), ChannelType.class),
 	SPECIBUS("specibus", new SpecibusArgumentValidator(), new StringArgumentConverter(), String.class),
-	PLAYER("player", new PlayerArgumentValidator(), new PlayerArgumentConverter(), Player.class);
+	PLAYER("player", new PlayerArgumentValidator(), new PlayerArgumentConverter(), Player.class), 
+	CLIENT_PLAYER("client player", new PlayerArgumentValidator(), new PlayerArgumentConverter(), Player.class),
+	SERVER_PLAYER("server player", new PlayerArgumentValidator(), new PlayerArgumentConverter(), Player.class);
 	
 	private ArgumentType(String humanName, ArgumentValidator av, ArgumentConverter ac, Class<?> rt)
 	{

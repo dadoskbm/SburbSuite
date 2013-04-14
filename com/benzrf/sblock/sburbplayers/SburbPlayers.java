@@ -3,6 +3,7 @@ package com.benzrf.sblock.sburbplayers;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,10 +11,15 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -54,6 +60,23 @@ import com.google.gson.Gson;
 
 public class SburbPlayers extends JavaPlugin implements Listener
 {
+	/**
+	 * In CraftBukkit, there are 20 server ticks per second. This value is used to conveniently convert between seconds and ticks.
+	 */
+	public static final int TICKS_PER_SECOND = 20;
+	public static final String PLUGIN_DIR = "plugins/SburbPlayers/";
+	private static final String SP_PREFIX = ChatColor.WHITE + "[" + ChatColor.GREEN + "Sburb" + ChatColor.RED + "Players" + ChatColor.WHITE + "] ";
+	private static final Gson gson = new Gson();
+	private static SburbPlayers instance;
+	private SburbSessionManager sessionManager;
+	private Map<String, SburbPlayer> players = new HashMap<String, SburbPlayer>();
+	private Map<Player, ItemStack> used = new HashMap<Player, ItemStack>();
+	private Map<String, String> towers = new HashMap<String, String>();
+	private Map<String, String> tpacks = new HashMap<String, String>();
+	private Map<String, String[]> abstrata = new HashMap<String, String[]>();
+	BiMap<String, String> shortNames = HashBiMap.create();
+	private CommandNode root;
+	
 	@Override
 	public void onDisable()
 	{
@@ -66,15 +89,24 @@ public class SburbPlayers extends JavaPlugin implements Listener
 //				writePlayerSQL(p);
 				writePlayer(p);
 			}
+			
+			//Saves all Sburb sessions
+			if(sessionManager != null)
+				sessionManager.shutdown();
+		}
+		catch(FileNotFoundException e)
+		{
+			if(System.getProperty("os.name").contains("Win"))
+				Logger.getLogger("Minecraft").warning("A FileNotFoundException was generated when saving player data. This may be due to a Windows I/O bug. Reason #413 why Linux is better.");
+			else
+				e.printStackTrace();
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
 		
-		//Saves all Sburb sessions
-		if(sessionManager != null)
-			sessionManager.shutdown();
+
 	}
 
 	@SuppressWarnings("unchecked")
@@ -131,13 +163,22 @@ public class SburbPlayers extends JavaPlugin implements Listener
 				e.printStackTrace();
 			}
 		}
+	
+		//TODO: Intended to log session actions to a file, but ends up creating a file for every single action. I'll come back to this...
+//		try
+//		{
+//			Handler handler = new FileHandler(PLUGIN_DIR + "admin.log");
+//			handler.setFormatter(new SimpleFormatter());
+//			Logger.getLogger("Sburb").addHandler(handler); 
+//		}
+//		catch(IOException e) {}
 		
 		this.root = new CommandNode("sp");
 		new ExecutableCommandNode("i", this.root, "getInfo", ArgumentType.PLAYER);
 		new ExecutableCommandNode("info", this.root, "getInfo", ArgumentType.PLAYER);
 		
 		CommandNode session = new CommandNode("session", this.root);
-		new ExecutableCommandNode("enter", session, "startSession", ArgumentType.PLAYER, ArgumentType.MESSAGE);
+		new ExecutableCommandNode("enter", session, "startSession", ArgumentType.CLIENT_PLAYER, ArgumentType.SERVER_PLAYER);
 		new ExecutableCommandNode("kill", session, "killSession", ArgumentType.PLAYER);
 		new ExecutableCommandNode("tp", session, "teleport");
 		
@@ -206,7 +247,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	public void onBlockPlace(BlockPlaceEvent event)
 	{
 		Block eventBlock = event.getBlock();
-		if(eventBlock.getType() == Material.COBBLESTONE && sessionManager.sendMark(eventBlock.getLocation(), getPlayer(event.getPlayer().getName())))
+		if(eventBlock.getType() == Material.COBBLESTONE && sessionManager.sendMark(eventBlock.getLocation(), event.getPlayer().getName()))
 			event.setCancelled(true);
 			
 		if (event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.ZOMBIE))
@@ -233,6 +274,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	public void onPlayerJoin(PlayerJoinEvent event) throws IOException, ClassNotFoundException, java.sql.SQLException
 	{
 		readPlayer(event.getPlayer());
+		sessionManager.onPlayerJoin(event);
 		if (tpacks.containsKey(event.getPlayer().getWorld().getName()))
 		{
 			//event.getPlayer().setTexturePack(this.tpacks.get(event.getPlayer().getWorld().getName()));
@@ -252,14 +294,14 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			{
 				try
 				{
-					SburbPlayer sp = this.gson.fromJson(readFile(PLUGIN_DIR + "u_" + p.getName() + ".spd"), SburbPlayer.class);
+					SburbPlayer sp = SburbPlayers.gson.fromJson(readFile(PLUGIN_DIR + "u_" + p.getName() + ".spd"), SburbPlayer.class);
 					sp.setBukkitPlayer(p);
 					this.players.put(p.getName(), sp);
 				}
 				catch (NullPointerException e)
 				{
 					this.players.put(p.getName(), new SburbPlayer(p, SClass.Heir, Aspect.Breath, MPlanet.LOWAS, CPlanet.Prospit, Integer.toString(new Random().nextInt(3))));
-					p.sendMessage(this.prefix + ChatColor.RED + "Your SburbPlayers data has been lost or corrupted! Please ask an admin for assistance as soon as you can!");
+					p.sendMessage(SburbPlayers.SP_PREFIX + ChatColor.RED + "Your SburbPlayers data has been lost or corrupted! Please ask an admin for assistance as soon as you can!");
 				}
 			}
 			else
@@ -298,7 +340,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		if (this.players.containsKey(p.getName()))
 		{
 			BufferedWriter w = new BufferedWriter(new FileWriter(PLUGIN_DIR + "u_" + p.getName() + ".spd"));
-			w.write(this.gson.toJson(this.players.get(p.getName())));
+			w.write(SburbPlayers.gson.toJson(this.players.get(p.getName())));
 			w.flush();
 			w.close();
 			this.players.remove(p.getName());
@@ -308,7 +350,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	private void writePlayerSQL(Player p) throws java.sql.SQLException
 	{
 		com.benzrf.services.Services.statement.executeUpdate("DELETE FROM splayers WHERE name = '" + p.getName() + "';");
-		com.google.gson.JsonElement j = this.gson.toJsonTree(this.players.get(p.getName()));
+		com.google.gson.JsonElement j = SburbPlayers.gson.toJsonTree(this.players.get(p.getName()));
 		String qstring = "INSERT INTO splayers ";
 		String vs = "('" + p.getName() + "', ";
 		String is = "(name, ";
@@ -503,7 +545,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	
 	public String prefix()
 	{
-		return prefix;
+		return SP_PREFIX;
 	}
 	
 	public SburbSessionManager getSessionManager()
@@ -549,18 +591,4 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	{
 		return abstrata;
 	}
-
-	public static final int TICKS_PER_SECOND = 20;
-	public static final String PLUGIN_DIR = "plugins/SburbPlayers/";
-	private SburbSessionManager sessionManager;
-	private static SburbPlayers instance;
-	private Map<String, SburbPlayer> players = new HashMap<String, SburbPlayer>();
-	private Map<Player, ItemStack> used = new HashMap<Player, ItemStack>();
-	private Map<String, String> towers = new HashMap<String, String>();
-	private Map<String, String> tpacks = new HashMap<String, String>();
-	private Map<String, String[]> abstrata = new HashMap<String, String[]>();
-	BiMap<String, String> shortNames = HashBiMap.create();
-	private CommandNode root;
-	private String prefix = ChatColor.WHITE + "[" + ChatColor.GREEN + "Sburb" + ChatColor.RED + "Players" + ChatColor.WHITE + "] ";
-	private Gson gson = new Gson();
 }

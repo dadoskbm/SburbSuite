@@ -1,6 +1,7 @@
 package com.benzrf.sblock.sburbplayers;
 
 import java.io.Serializable;
+import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -47,12 +48,14 @@ public class SburbPlayer implements Serializable, ExecutorClass
 	 * @param other Other player
 	 * @param playerType Player type of the player executing the command, either "client" or "server"
 	 */
-	public void startSession(Player other, String playerType)
+	public void startSession(Player client, Player server)
 	{
-		if(playerType.equalsIgnoreCase("client"))
-			SburbPlayers.getInstance().getSessionManager().startSession(this, SburbPlayers.getInstance().getPlayer(other.getName()));
-		else if(playerType.equalsIgnoreCase("server"));
-			SburbPlayers.getInstance().getSessionManager().startSession(SburbPlayers.getInstance().getPlayer(other.getName()), this);
+		if(player.hasPermission("sburbplayers.manageSessions"))
+		{
+    		SburbPlayers.getInstance().getSessionManager().startSession(client.getName(), server.getName(), this);
+		}
+		else
+			this.sendMessage(ChatColor.RED + "You do not have permission to do that!");
 	}
 	
 	public void teleport()
@@ -68,12 +71,16 @@ public class SburbPlayer implements Serializable, ExecutorClass
 	public void killSession(Player clientPlayerToKill)
 	{
 		if(this.player.hasPermission("sburbplayers.manageSessions"))
-			SburbPlayers.getInstance().getSessionManager().killSession(clientPlayerToKill);
+		{
+			SburbPlayers.getInstance().getSessionManager().killSession(clientPlayerToKill, this);
+		}
+		else
+			this.sendMessage(ChatColor.RED + "You do not have permission to do that!");
 	}
 	
 	public void setSpecibus(String s)
 	{
-		if (this.abstratus == null || "".equals(this.abstratus))
+		if (this.abstratus == null || this.abstratus.isEmpty())
 		{
 			this.abstratus = s;
 			this.sendMessage(ChatColor.GREEN + "You have successfully allocated your " + ChatColor.GRAY + "STRIFE SPECIBUS" + ChatColor.GREEN + " with the " + ChatColor.BLUE + s.toUpperCase() + " ABSTRATUS" + ChatColor.GREEN + "!");
@@ -86,7 +93,7 @@ public class SburbPlayer implements Serializable, ExecutorClass
 	
 	public void setItem()
 	{
-		if (this.abstratus == null || "".equals(this.abstratus))
+		if (this.abstratus == null || this.abstratus.isEmpty())
 		{
 			this.sendMessage(ChatColor.RED + "You don't have a " + ChatColor.BLUE + "KIND ABSTRATUS" + ChatColor.RED + " allocated to your " + ChatColor.GRAY + "STRIFE SPECIBUS" + ChatColor.RED + "!");
 			return;

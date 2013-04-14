@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import com.benzrf.sblock.sburbplayers.SburbPlayer;
 import com.benzrf.sblock.sburbplayers.SburbPlayers;
@@ -29,15 +29,15 @@ import com.google.gson.Gson;
 public final class SburbSessionManager
 {
 	private Set<SburbSession> sessions;
-	private Map<SburbPlayer, SburbSession> clients, servers;
+	private Map<String, SburbSession> clients, servers;
 	public static final String SESSIONS_DIR = SburbPlayers.PLUGIN_DIR + "sessions/";
 	
 	public SburbSessionManager() throws IOException
 	{
 		Gson gson = new Gson();
 		sessions = new HashSet<SburbSession>();
-		clients = new HashMap<SburbPlayer, SburbSession>();
-		servers = new HashMap<SburbPlayer, SburbSession>();
+		clients = new HashMap<String, SburbSession>();
+		servers = new HashMap<String, SburbSession>();
 		File[] entries = new File(SburbSessionManager.SESSIONS_DIR).listFiles(new FileFilter(){
 
 			@Override
@@ -50,15 +50,19 @@ public final class SburbSessionManager
             }
 			
 		});
-		System.out.println("Entries: " + entries.length);
+		Logger.getLogger("Minecraft").info("Loading " + entries.length + " active session(s)");
 		for(File file : entries)
 		{
 			SburbSession newSession = gson.fromJson(new FileReader(file), SburbSession.class);
-			System.out.printf("Entry %s produces JSON object %s", file.getName(), newSession);
-			newSession.loadRefs();
+			if(newSession == null)
+			{
+				Logger.getLogger("Minecraft").severe("File " + file.getName() + " is corrupt, failed to load session.");
+				continue;
+			}
+			newSession.loadSession();
 			sessions.add(newSession);
-			clients.put(newSession.getClientPlayer(), newSession);
-			servers.put(newSession.getServerPlayer(), newSession);
+			clients.put(newSession.getClientName(), newSession);
+			servers.put(newSession.getServerName(), newSession);
 		}
 	}
 	
@@ -95,7 +99,7 @@ public final class SburbSessionManager
 			}
 			catch(IOException e)
 			{
-				Logger.getLogger("Sburb").severe("Error saving session file!: " + e.toString());
+				Logger.getLogger("Minecraft").severe("Error saving session file!: " + e.toString());
 			}
 		}
 	}
@@ -104,8 +108,9 @@ public final class SburbSessionManager
 	 * Starts a new session
 	 * @param client Player who will act as the client in this session
 	 * @param server Player who will act as the server in this session
+	 * @param caller Administrator performing this action
 	 */
-    public void startSession(SburbPlayer client, SburbPlayer server)
+    public void startSession(String client, String server, SburbPlayer caller)
     {
     	SburbSession session;
 	    try
@@ -114,12 +119,13 @@ public final class SburbSessionManager
         }
         catch (IOException e)
         {
-	        client.sendMessage("Your Sburb session could not be started.");
-	        server.sendMessage("Your Sburb session could not be started.");
+	        SburbPlayers.getInstance().getPlayer(client).sendMessage("Your Sburb session could not be started.");
+	        SburbPlayers.getInstance().getPlayer(server).sendMessage("Your Sburb session could not be started.");
 	        e.printStackTrace();
 	        return;
         }
 	    
+	    Logger.getLogger("Sburb").info("ADMIN ACTION: " + caller.getName() + " started a session (Client: " + session.getClientName() + ", Server: " + session.getServerName() + ")");
 	    sessions.add(session);
 	    clients.put(client, session);
 	    servers.put(server, session);
@@ -132,7 +138,7 @@ public final class SburbSessionManager
      * @param clientPlayer Client player issuing the mark.
      * @return True if mark was used, and the marking block should NOT be placed.
      */
-    public boolean sendMark(Location location, SburbPlayer clientPlayer)
+    public boolean sendMark(Location location, String clientPlayer)
     {
     	SburbSession clientSession = clients.get(clientPlayer);
     	if(clientSession != null && clientSession.receiveMark(location))
@@ -141,19 +147,22 @@ public final class SburbSessionManager
     		return false;
     }
     
+    
 
 	/**
 	 * Kills the session where the given player is the client
 	 * @param clientPlayerToKill Client player of the session to kill
+	 * @param caller Administrator issuing this command
 	 * @see com.benzrf.sblock.sburbplayers.SburbPlayer#killSession(Player)
 	 */
     
-    public void killSession(Player clientPlayerToKill)
+    public void killSession(Player clientPlayerToKill, SburbPlayer caller)
     {
-	    SburbSession sessionToKill = this.clients.get(SburbPlayers.getInstance().getPlayer(clientPlayerToKill.getName()));
+	    SburbSession sessionToKill = this.clients.get(clientPlayerToKill.getName());
+	    Logger.getLogger("Sburb").info("ADMIN ACTION: " + caller.getName() + " killed a session (Client: " + sessionToKill.getClientName() + ", Server: " + sessionToKill.getServerName() + ")");
 	    sessions.remove(sessionToKill);
-	    clients.remove(sessionToKill.getClientPlayer());
-	    servers.remove(sessionToKill.getServerPlayer());
+	    clients.remove(sessionToKill.getClientName());
+	    servers.remove(sessionToKill.getServerName());
 	    sessionToKill.kill();
     }
 
@@ -162,16 +171,32 @@ public final class SburbSessionManager
 	 */
     public void teleport(SburbPlayer serverPlayer)
     {
-    	SburbSession serverSession = servers.get(serverPlayer);
+    	SburbSession serverSession = servers.get(serverPlayer.getName());
     	if(serverSession != null)
     	{
-    	    if(!servers.get(serverPlayer).isServerInEditMode())
-    	    	servers.get(serverPlayer).teleportIn();
+    	    if(!servers.get(serverPlayer.getName()).isServerInEditMode())
+    	    	servers.get(serverPlayer.getName()).teleportIn();
     	    else
-    	    	servers.get(serverPlayer).teleportOut();
+    	    	servers.get(serverPlayer.getName()).teleportOut();
     	}
     	else
     		serverPlayer.sendMessage("You are not a server player in a session");
+	    
+    }
+
+	/**
+	 * Called when a player joins the server. When a player joins, if they are a client player currently in edit mode, the location
+	 * checker should be enabled and all necessary powers are given to them.
+	 * @param event
+	 */
+    public void onPlayerJoin(PlayerJoinEvent event)
+    {
+	    SburbSession sSession = servers.get(event.getPlayer().getName()),
+	    		     cSession = clients.get(event.getPlayer().getName());
+	    if(sSession != null)
+	    	sSession.onServerPlayerJoin();
+	    if(cSession != null)
+	    	cSession.onClientPlayerJoin();
 	    
     }
 }

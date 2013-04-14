@@ -7,13 +7,13 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.benzrf.sblock.sburbplayers.SburbPlayer;
 import com.benzrf.sblock.sburbplayers.SburbPlayers;
 import com.google.gson.Gson;
 
@@ -61,14 +61,18 @@ import com.google.gson.Gson;
 public class SburbSession implements Serializable
 {
 	private static final long serialVersionUID = -7964982032724530818L;
+	private static final ChatColor SERVER_COLOR = ChatColor.GOLD, CLIENT_COLOR = ChatColor.AQUA, STD_COLOR = ChatColor.YELLOW;
     private String cName, sName;
-    private transient SburbPlayer client, server;
-    private Location[] cuboidPoints = new Location[2];
+    //private transient SburbPlayer client, server;
+    private transient Location[] cuboidPoints;
+    private int[][] rawPoints;
+    private int[] rawServerLocation;
+    private String worldName, serverLocationWorldName;
     private transient File sessionFile;
-    private BukkitTask locationChecker;
+    private transient BukkitTask locationChecker;
     private int totalArea = -1;
     private int groundFloorLevel = -1;
-    private Location serverPrevLocation = null;
+    private transient Location serverPrevLocation = null;
     private boolean serverInEditMode = false;
     private boolean isActive = false;
     private transient boolean markingMode = false;
@@ -80,12 +84,10 @@ public class SburbSession implements Serializable
      * @param server The server player
      * @throws IOException If there was an issue creating the session file.
      */
-    SburbSession(SburbPlayer client, SburbPlayer server) throws IOException
+    SburbSession(String client, String server) throws IOException
     {
-    	this.client = client;
-    	this.server = server;
-    	this.cName = client.getName();
-    	this.sName = server.getName();
+    	this.cName = client;
+    	this.sName = server;
     	sessionFile = new File(SburbSessionManager.SESSIONS_DIR + "s_" + cName + "_" + sName + ".sps");
     	saveSession();
     }
@@ -97,16 +99,17 @@ public class SburbSession implements Serializable
      */
     void init()
     {
+    	cuboidPoints = new Location[2];
     	isActive = true;
-    	sendToClient("Starting a new Sburb session with " + ChatColor.GOLD + sName);
-    	sendToClient("You are the " + ChatColor.AQUA + "CLIENT");
-    	sendToServer("Starting a new Sburb session with " + ChatColor.AQUA + cName);
-    	sendToServer("You are the " + ChatColor.GOLD + "SERVER");
+    	sendToClient("Starting a new Sburb session with " + SERVER_COLOR + sName);
+    	sendToClient("You are the " + CLIENT_COLOR + "CLIENT");
+    	sendToServer("Starting a new Sburb session with " + CLIENT_COLOR + cName);
+    	sendToServer("You are the " + SERVER_COLOR + "SERVER");
     	
-    	sendToServer("Please wait while " + cName + " sets his/her house boundaries.");
+    	sendToServer("Please wait while " + CLIENT_COLOR + cName + STD_COLOR + " sets his/her house boundaries.");
     	sendToClient("You need to set the boundaries of your house.");
-    	sendToClient("Place a " + ChatColor.RED + "cobblestone block " + ChatColor.YELLOW + "in " 
-				 + ChatColor.RED + "one corner " + ChatColor.YELLOW + "of your house ");
+    	sendToClient("Place a " + ChatColor.RED + "cobblestone block " + STD_COLOR + "in " 
+				 + ChatColor.RED + "one corner " + STD_COLOR + "of your house ");
     	markingMode = true;
     	
     }
@@ -119,15 +122,15 @@ public class SburbSession implements Serializable
     		{
     			cuboidPoints[0] = location;
     			sendToClient("Location 1 set to (" + SburbPlayers.lts(location) + ")");
-    			sendToClient("Place a " + ChatColor.RED + "cobblestone block " + ChatColor.YELLOW + "in " 
-    					 + ChatColor.RED + "the opposite corner " + ChatColor.YELLOW + "of your house ");
+    			sendToClient("Place a " + ChatColor.RED + "cobblestone block " + STD_COLOR + "in " 
+    					 + ChatColor.RED + "the opposite corner " + STD_COLOR + "of your house ");
     		}
     		else if(cuboidPoints[1] == null)
     		{
     			cuboidPoints[1] = location;
     			sendToClient("Location 2 set to (" + SburbPlayers.lts(location) + ")");
-    			sendToClient("Place a " + ChatColor.RED + "cobblestone block " + ChatColor.YELLOW + "on " 
-    					 + ChatColor.RED + "the ground floor " + ChatColor.YELLOW + "of your house ");
+    			sendToClient("Place a " + ChatColor.RED + "cobblestone block " + STD_COLOR + "on " 
+    					 + ChatColor.RED + "the ground floor " + STD_COLOR + "of your house ");
     		}
     		else if(groundFloorLevel == -1)
     		{
@@ -141,20 +144,6 @@ public class SburbSession implements Serializable
     	}
     	else
     		return false;
-    }
-    
-    /**
-     * This method loads in references to the client and server. It is imperative that this method be called right
-     * after deserialization.
-     */
-    void loadRefs()
-    {
-    	if(client == null)
-    		client = SburbPlayers.getInstance().getPlayer(cName);
-    	if(server == null)
-    		server = SburbPlayers.getInstance().getPlayer(sName);
-    	if(sessionFile == null)
-    		sessionFile = new File(SburbSessionManager.SESSIONS_DIR + "s_" + cName + "_" + sName + ".sps");
     }
     
     /**
@@ -182,15 +171,14 @@ public class SburbSession implements Serializable
      */
     void teleportIn()
     {
-    	serverPrevLocation = server.asBukkitPlayer().getLocation();
-    	
-    	Location teleportLocation = getOpenLocation();
+    	Location teleportLocation = serverPrevLocation == null ? getOpenLocation() : serverPrevLocation;
+    	serverPrevLocation = Bukkit.getPlayer(sName).getLocation();
     	if(teleportLocation != null)
     	{
-    		server.asBukkitPlayer().teleport(teleportLocation);
+    		Bukkit.getPlayer(sName).teleport(teleportLocation);
     		serverInEditMode = true;
     		locationChecker = this.new LocationCheckTask().runTaskTimer(SburbPlayers.getInstance(), SburbPlayers.TICKS_PER_SECOND, SburbPlayers.TICKS_PER_SECOND);
-    		sendToServer("Teleportation sucuessful");
+    		sendToServer("Teleported in");
     	}
     	else
     		sendToServer(ChatColor.RED + "You could not be teleported to your client's house!");
@@ -204,12 +192,37 @@ public class SburbSession implements Serializable
     {
     	serverInEditMode = false;
     	locationChecker.cancel();
-    	server.asBukkitPlayer().teleport(serverPrevLocation);
-    	serverPrevLocation = null;
-    	sendToServer("Teleportation sucuessful");
+    	locationChecker = null;
+    	Location prevLoc = Bukkit.getPlayer(sName).getLocation();
+    	Bukkit.getPlayer(sName).teleport(serverPrevLocation);
+    	serverPrevLocation = prevLoc; //Save location for when server returns to house.
+    	sendToServer("Teleported out");
     }
     
     /**
+	 * Called by the session manager when the server player joins. If a server player was in edit mode when they
+	 * last logged out, the location checker must be reinitialized.
+	 */
+	void onServerPlayerJoin()
+	{
+	    if(serverInEditMode)
+	    {
+	    	locationChecker = this.new LocationCheckTask().runTaskTimer(SburbPlayers.getInstance(), SburbPlayers.TICKS_PER_SECOND, SburbPlayers.TICKS_PER_SECOND);
+	    }
+	    
+	}
+	
+	/**
+	 * Called by the session manager when the client player joins. If setup of the session is not complete, then the session must
+	 * be reinitialized.
+	 */
+	void onClientPlayerJoin()
+	{
+		if(cuboidPoints == null)
+			init(); //Boundaries still need to be set.
+	}
+
+	/**
      * @return true if the server is currently in "edit mode" at their client's house
      */
     boolean isServerInEditMode()
@@ -245,7 +258,7 @@ public class SburbSession implements Serializable
     	{
     		for(int z = Math.min(cuboidPoints[0].getBlockZ(), cuboidPoints[1].getBlockZ()); z <= Math.max(cuboidPoints[0].getBlockZ(),cuboidPoints[1].getBlockZ()); z++)
     		{
-    			Location thisLoc = new Location(client.asBukkitPlayer().getWorld(), x, groundFloorLevel + 1, z);
+    			Location thisLoc = new Location(Bukkit.getPlayer(cName).getWorld(), x + 0.5D, groundFloorLevel + 1, z + 0.5D);
     			if(thisLoc.getBlock().getType() == Material.AIR
     					&& thisLoc.add(0, 1, 0).getBlock().getType() == Material.AIR)
     			{
@@ -257,38 +270,81 @@ public class SburbSession implements Serializable
     	return null;
     }
 
-	void saveSession() throws IOException //FIXME Data cannot be saved in its current state. Something in the Location class is referencing itself, causing stack overflow.
-    {
-		try
+	/**
+	 * @return The client player's name.
+	 */
+	String getClientName()
+	{
+	    return cName;
+	}
+
+	/**
+	 * @return The server player's name.
+	 */
+	String getServerName()
+	{
+		return sName;
+	}
+
+	/**
+	 * This method loads in references to transient class values that could not be saved in a file. It is imperative that this method
+	 * be called right after deserialization.
+	 */
+	void loadSession()
+	{
+		if(sessionFile == null)
+			sessionFile = new File(SburbSessionManager.SESSIONS_DIR + "s_" + cName + "_" + sName + ".sps");
+		if(cuboidPoints == null && rawPoints != null)
 		{
-    	FileOutputStream out = new FileOutputStream(sessionFile);
-    	System.out.println(new Gson().toJson(this));
-    	out.write(new Gson().toJson(this).getBytes(Charset.defaultCharset()));
-    	out.flush();
-    	out.close();
-		}catch(StackOverflowError e)
-		{
-			Logger.getLogger("Minecraft").severe("Stack overflow error!");
+			cuboidPoints = new Location[2];
+			for(int i = 0; i < cuboidPoints.length; i++)
+				cuboidPoints[i] = new Location(Bukkit.getWorld(worldName), rawPoints[i][0], rawPoints[i][1], rawPoints[i][2]);
 		}
+		if(rawServerLocation != null)
+		{
+			serverPrevLocation = new Location(Bukkit.getWorld(serverLocationWorldName), rawServerLocation[0], rawServerLocation[1], rawServerLocation[2]);
+		}
+	
+	}
+
+	/**
+	 * Prepares this session for serialization, serializes it, and saves it to the proper file.
+	 * @throws IOException if an IOException occurs
+	 */
+	void saveSession() throws IOException
+    {
+		if(cuboidPoints != null && cuboidPoints[0] != null && cuboidPoints[1] != null)
+		{
+			rawPoints = new int[2][3];
+    		for(int i = 0; i < rawPoints.length; i++)
+    		{
+    			rawPoints[i][0] = cuboidPoints[i].getBlockX();
+    			rawPoints[i][1] = cuboidPoints[i].getBlockY();
+    			rawPoints[i][2] = cuboidPoints[i].getBlockZ();
+    		}
+    		worldName = cuboidPoints[0].getWorld().getName();
+		}
+		if(serverPrevLocation != null)
+		{
+			serverLocationWorldName = serverPrevLocation.getWorld().getName();
+			rawServerLocation = new int[3];
+			rawServerLocation[0] = serverPrevLocation.getBlockX();
+			rawServerLocation[1] = serverPrevLocation.getBlockY();
+			rawServerLocation[2] = serverPrevLocation.getBlockZ();
+		}
+    	FileOutputStream out = new FileOutputStream(sessionFile);
+    	byte[] json = new Gson().toJson(this).getBytes(Charset.defaultCharset());
+    	if(json.length > 0)
+    	{
+        	out.write(json);
+        	out.flush();
+        	out.close();
+    	}
+    	else //Something went wrong with converting to JSON
+    		Logger.getLogger("Minecraft").severe(sessionFile.getName() + " could not be saved, an error occured during creation of the file.");
     }
     
-    /**
-     * 
-     * @return The client player
-     */
-    SburbPlayer getClientPlayer()
-    {
-    	return client;
-    }
-    
-    /**
-     * 
-     * @return The server player
-     */
-    SburbPlayer getServerPlayer()
-    {
-    	return server;
-    }
+
     
     /**
      * Sends a message to the client, with a color/text prefix.
@@ -296,7 +352,7 @@ public class SburbSession implements Serializable
      */
     void sendToClient(String message)
     {
-    	this.getClientPlayer().sendMessage(ChatColor.YELLOW + message);
+    	Bukkit.getPlayer(cName).sendMessage("[" + SERVER_COLOR + sName + ChatColor.WHITE + "=>" + CLIENT_COLOR + cName + ChatColor.WHITE + "] " + STD_COLOR + message);
     }
     
     /**
@@ -305,7 +361,7 @@ public class SburbSession implements Serializable
      */
     void sendToServer(String message)
     {
-    	this.getServerPlayer().sendMessage(ChatColor.YELLOW + message);
+    	Bukkit.getPlayer(sName).sendMessage("[" + SERVER_COLOR + sName + ChatColor.WHITE + "=>" + CLIENT_COLOR + cName + ChatColor.WHITE + "] " + STD_COLOR + message);
     }
     
     /**
@@ -324,8 +380,10 @@ public class SburbSession implements Serializable
      */
     void kill()
     {
+    	if(locationChecker != null)
+    		locationChecker.cancel();
     	isActive = false;
-    	sendToBoth(ChatColor.RED + "Your Sburb session has been terminated");
+    	sendToBoth(ChatColor.RED + "Your Sburb session has been terminated by a server administrator.");
     	if(!sessionFile.delete())
     		Logger.getLogger("Sburb").severe("Could not delete session file " + sessionFile.getName() + "!");
     	
@@ -346,14 +404,17 @@ public class SburbSession implements Serializable
         @Override
         public void run()
         {
-	        if(!isInsideHouse(server.asBukkitPlayer().getLocation()))
+        	if(Bukkit.getPlayer(sName) == null)
+        	{
+        		this.cancel();
+        	}
+        	else if(!isInsideHouse(Bukkit.getPlayer(sName).getLocation()))
 	        {	
 	        	sendToServer(ChatColor.RED + "GET THE FUCK BACK!");
-	        	server.asBukkitPlayer().teleport(getOpenLocation());
+	        	Bukkit.getPlayer(sName).teleport(getOpenLocation());
 	        }
 	        
         }
     	
     }
-
 }
