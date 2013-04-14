@@ -1,5 +1,5 @@
 name: SburbMachines
-main: com.benzrf.sblock.sburbmachines.SburbMachines
+main: co.sblock.sburbmachines.SburbMachines
 version: 1.0
 author: benzrf
 depend: [LWC]

@@ -1,5 +1,5 @@
 name: SburbPlayers
-main: com.benzrf.sblock.sburbplayers.SburbPlayers
+main: co.sblock.sburbplayers.SburbPlayers
 version: 1.0
 commands:
  setsp:
@@ -9,3 +9,6 @@ commands:
  sp:
  readcaptcha:
  makecaptcha:
+permissions:
+ sburbplayers.manageSessions:
+  default: op
