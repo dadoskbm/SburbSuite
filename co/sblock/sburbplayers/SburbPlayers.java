@@ -108,7 +108,8 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	@SuppressWarnings("unchecked")
 	@Override
 	public void onEnable()
-	{
+	{		
+		instance = this;
 		getServer().getPluginManager().registerEvents(this, this);
 		try
 		{
@@ -175,7 +176,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		
 		CommandNode session = new CommandNode("session", this.root);
 		new ExecutableCommandNode("enter", session, "startSession", ArgumentType.CLIENT_PLAYER, ArgumentType.SERVER_PLAYER);
-		new ExecutableCommandNode("kill", session, "killSession", ArgumentType.PLAYER);
+		new ExecutableCommandNode("kill", session, "killSession", ArgumentType.CLIENT_PLAYER);
 		new ExecutableCommandNode("tp", session, "teleport");
 		
 		CommandNode strife = new CommandNode("s", this.root);
@@ -184,8 +185,6 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		new ExecutableCommandNode("r", strife, "retrieveItem");
 		
 		this.shortNames.put("Uncarved Cruxite Dowel", "UnCruxDow");
-		
-		instance = this;
 	}
 	
 	@EventHandler
@@ -241,11 +240,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event)
-	{
-		Block eventBlock = event.getBlock();
-		if(eventBlock.getType() == Material.COBBLESTONE && sessionManager.sendMark(eventBlock.getLocation(), event.getPlayer().getName()))
-			event.setCancelled(true);
-			
+	{			
 		if (event.getBlock().getState() instanceof Skull && ((Skull) event.getBlock().getState()).getSkullType().equals(SkullType.ZOMBIE))
 		{
 			event.setCancelled(true);
@@ -270,7 +265,6 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	public void onPlayerJoin(PlayerJoinEvent event) throws IOException, ClassNotFoundException, java.sql.SQLException
 	{
 		readPlayer(event.getPlayer());
-		sessionManager.onPlayerJoin(event);
 		if (tpacks.containsKey(event.getPlayer().getWorld().getName()))
 		{
 			//event.getPlayer().setTexturePack(this.tpacks.get(event.getPlayer().getWorld().getName()));

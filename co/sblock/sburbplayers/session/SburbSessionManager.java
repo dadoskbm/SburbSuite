@@ -13,9 +13,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.bukkit.Location;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import co.sblock.sburbplayers.SburbPlayer;
 import co.sblock.sburbplayers.SburbPlayers;
@@ -27,14 +38,16 @@ import com.google.gson.Gson;
  * @author FireNG
  *
  */
-public final class SburbSessionManager
+public final class SburbSessionManager implements Listener
 {
 	private Set<SburbSession> sessions;
 	private Map<String, SburbSession> clients, servers;
 	public static final String SESSIONS_DIR = SburbPlayers.PLUGIN_DIR + "sessions/";
+	static PhernaliaRegistry registry = new PhernaliaRegistry();
 	
 	public SburbSessionManager() throws IOException
 	{
+		Bukkit.getServer().getPluginManager().registerEvents(this, SburbPlayers.getInstance());
 		Gson gson = new Gson();
 		sessions = new HashSet<SburbSession>();
 		clients = new HashMap<String, SburbSession>();
@@ -72,7 +85,7 @@ public final class SburbSessionManager
 	 * @param name Player to search
 	 * @return The player's client session, or null if the player is not a client in any session.
 	 */
-	SburbSession getClientSession(SburbPlayer name)
+	SburbSession getClientSession(String name)
 	{
 		return clients.get(name);
 	}
@@ -82,7 +95,7 @@ public final class SburbSessionManager
 	 * @param name Player to search
 	 * @return The player's server session, or null if the player is not a server in any session.
 	 */
-	SburbSession getServerSession(SburbPlayer name)
+	SburbSession getServerSession(String name)
 	{
 		return servers.get(name);
 	}
@@ -133,21 +146,44 @@ public final class SburbSessionManager
 	    session.init();
 	    
     }
-    /**
-     * Sends a mark to the client player's session class, to be interpreted.
-     * @param location Marking location
-     * @param clientPlayer Client player issuing the mark.
-     * @return True if mark was used, and the marking block should NOT be placed.
-     */
-    public boolean sendMark(Location location, String clientPlayer)
+    
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event)
     {
-    	SburbSession clientSession = clients.get(clientPlayer);
-    	if(clientSession != null && clientSession.receiveMark(location))
-    		return true;
-    	else
-    		return false;
+    	if(registry.getPrice(event.getBlock().getType()) < 0)
+    		event.setCancelled(true);
     }
     
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event)
+    {
+		Block eventBlock = event.getBlock();
+		SburbSession clientSession = clients.get(event.getPlayer().getName()),
+					 serverSession = servers.get(event.getPlayer().getName());
+		
+		if(serverSession != null && serverSession.isServerInEditMode())
+		{
+			int price = registry.getPrice(eventBlock.getType());
+			if(price < 0)
+			{
+				serverSession.sendToClient("You are not allowed to place that item.");
+				event.setCancelled(true);
+				return;
+			}
+			else if(clientSession.getGrist() < price)
+			{
+				serverSession.sendToClient("This object costs " + ChatColor.RED + price + SburbSession.STD_COLOR + " grist. (Your total: "  + ChatColor.RED + serverSession.getGrist() + SburbSession.STD_COLOR + ")");
+				event.setCancelled(true);
+				return;
+			}
+			else
+			{
+				serverSession.adjustGrist(price * -1);
+			}
+		}
+		if(clientSession != null && eventBlock.getType() == Material.COBBLESTONE && clientSession.receiveMark(eventBlock.getLocation()))
+			event.setCancelled(true);
+    }    
     
 
 	/**
@@ -190,6 +226,7 @@ public final class SburbSessionManager
 	 * checker should be enabled and all necessary powers are given to them.
 	 * @param event
 	 */
+    @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event)
     {
 	    SburbSession sSession = servers.get(event.getPlayer().getName()),
@@ -200,4 +237,6 @@ public final class SburbSessionManager
 	    	cSession.onClientPlayerJoin();
 	    
     }
+
+    
 }

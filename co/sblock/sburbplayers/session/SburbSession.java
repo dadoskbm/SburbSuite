@@ -5,12 +5,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.Random;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -59,15 +64,17 @@ import com.google.gson.Gson;
  * @author FireNG
  *
  */
-public class SburbSession implements Serializable
+class SburbSession implements Serializable
 {
 	private static final long serialVersionUID = -7964982032724530818L;
-	private static final ChatColor SERVER_COLOR = ChatColor.GOLD, CLIENT_COLOR = ChatColor.AQUA, STD_COLOR = ChatColor.YELLOW;
+	static final ChatColor SERVER_COLOR = ChatColor.GOLD, CLIENT_COLOR = ChatColor.AQUA, STD_COLOR = ChatColor.YELLOW;
     private String cName, sName;
     //private transient SburbPlayer client, server;
     private transient Location[] cuboidPoints;
     private int[][] rawPoints;
     private int[] rawServerLocation;
+    private int grist;
+    private int NDI; //Number of Dubious Importance
     private String worldName, serverLocationWorldName;
     private transient File sessionFile;
     private transient BukkitTask locationChecker;
@@ -89,6 +96,22 @@ public class SburbSession implements Serializable
     {
     	this.cName = client;
     	this.sName = server;
+    	this.grist = 0;
+    	SburbSession clientsServerSession = SburbPlayers.getInstance().getSessionManager().getServerSession(client),
+    				 serversClientSession = SburbPlayers.getInstance().getSessionManager().getClientSession(server);
+    	if(clientsServerSession != null)
+    	{
+    		this.NDI = clientsServerSession.NDI;
+    	}
+    	else if(serversClientSession != null)
+    	{
+    		this.NDI = serversClientSession.NDI;
+    	}
+    	else //Generate a new NDI
+    	{
+    		Random rand = new Random();
+    		this.NDI = (rand.nextInt(12) + 1) * 100 + (rand.nextInt(28) + 1);
+    	}
     	sessionFile = new File(SburbSessionManager.SESSIONS_DIR + "s_" + cName + "_" + sName + ".sps");
     	saveSession();
     }
@@ -172,14 +195,16 @@ public class SburbSession implements Serializable
      */
     void teleportIn()
     {
+    	Player player = Bukkit.getPlayer(sName);
     	Location teleportLocation = serverPrevLocation == null ? getOpenLocation() : serverPrevLocation;
-    	serverPrevLocation = Bukkit.getPlayer(sName).getLocation();
+    	serverPrevLocation = player.getLocation();
     	if(teleportLocation != null)
     	{
-    		Bukkit.getPlayer(sName).teleport(teleportLocation);
-    		serverInEditMode = true;
+    		player.teleport(teleportLocation);
+    		this.setServerInEditMode(true);
     		locationChecker = this.new LocationCheckTask().runTaskTimer(SburbPlayers.getInstance(), SburbPlayers.TICKS_PER_SECOND, SburbPlayers.TICKS_PER_SECOND);
     		sendToServer("Teleported in");
+    		
     	}
     	else
     		sendToServer(ChatColor.RED + "You could not be teleported to your client's house!");
@@ -191,11 +216,12 @@ public class SburbSession implements Serializable
      */
     void teleportOut()
     {
-    	serverInEditMode = false;
+    	Player player = Bukkit.getPlayer(sName);
+    	this.setServerInEditMode(false);
     	locationChecker.cancel();
     	locationChecker = null;
-    	Location prevLoc = Bukkit.getPlayer(sName).getLocation();
-    	Bukkit.getPlayer(sName).teleport(serverPrevLocation);
+    	Location prevLoc = player.getLocation();
+    	player.teleport(serverPrevLocation);
     	serverPrevLocation = prevLoc; //Save location for when server returns to house.
     	sendToServer("Teleported out");
     }
@@ -206,6 +232,7 @@ public class SburbSession implements Serializable
 	 */
 	void onServerPlayerJoin()
 	{
+		setServerInEditMode(serverInEditMode); //Yes, it's redundant, but necessary to set creative mode, etc. properly.
 	    if(serverInEditMode)
 	    {
 	    	locationChecker = this.new LocationCheckTask().runTaskTimer(SburbPlayers.getInstance(), SburbPlayers.TICKS_PER_SECOND, SburbPlayers.TICKS_PER_SECOND);
@@ -231,6 +258,14 @@ public class SburbSession implements Serializable
     	return serverInEditMode;
     }
     
+    void setServerInEditMode(boolean val)
+    {
+    	Player sPlayer = Bukkit.getPlayer(sName);
+    	serverInEditMode = val;
+    	sPlayer.setGameMode(val ? GameMode.CREATIVE : GameMode.SURVIVAL);
+    	sPlayer.setCanPickupItems(!val);
+    }
+    
     /**
      * Gets, or computes and returns, the total area of the client's house
 	 * @return The area bounded by the coordinates set by the client
@@ -247,6 +282,23 @@ public class SburbSession implements Serializable
 	    	totalArea = lengthX * lengthY * lengthZ;
 	    	return totalArea;
 	    }
+    }
+    
+    /**
+     * 
+     * @return The amount of grist the server player has.
+     */
+    int getGrist()
+    {
+    	return grist;
+    }
+    
+    /**
+     * @param val Amount to add/subtract from grist.
+     */
+    void adjustGrist(int val)
+    {
+    	grist += val;
     }
     
     /**
@@ -418,4 +470,5 @@ public class SburbSession implements Serializable
         }
     	
     }
+    
 }
