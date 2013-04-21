@@ -14,14 +14,11 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import co.sblock.common.io.GsonFactory;
 import co.sblock.sburbplayers.SburbPlayers;
-
-import com.google.gson.Gson;
 
 /*
  * FROM Sburb Notes.txt:
@@ -70,17 +67,13 @@ class SburbSession implements Serializable
 	static final ChatColor SERVER_COLOR = ChatColor.GOLD, CLIENT_COLOR = ChatColor.AQUA, STD_COLOR = ChatColor.YELLOW;
     private String cName, sName;
     //private transient SburbPlayer client, server;
-    private transient Location[] cuboidPoints;
-    private int[][] rawPoints;
-    private int[] rawServerLocation;
+    private Location[] cuboidPoints;
     private int grist;
     private int NDI; //Number of Dubious Importance
-    private String worldName, serverLocationWorldName;
-    private transient File sessionFile;
     private transient BukkitTask locationChecker;
     private int totalArea = -1;
     private int groundFloorLevel = -1;
-    private transient Location serverPrevLocation = null;
+    private Location serverPrevLocation = null;
     private boolean serverInEditMode = false;
     private boolean isActive = false;
     private transient boolean markingMode = false;
@@ -112,9 +105,11 @@ class SburbSession implements Serializable
     		Random rand = new Random();
     		this.NDI = (rand.nextInt(12) + 1) * 100 + (rand.nextInt(28) + 1);
     	}
-    	sessionFile = new File(SburbSessionManager.SESSIONS_DIR + "s_" + cName + "_" + sName + ".sps");
     	saveSession();
     }
+    
+    @SuppressWarnings("unused")
+    private SburbSession() {}
     
     /**
      * Starts the Sburb session. At this point, the client will set house boundaries, and 
@@ -345,48 +340,49 @@ class SburbSession implements Serializable
 	 */
 	void loadSession()
 	{
-		if(sessionFile == null)
-			sessionFile = new File(SburbSessionManager.SESSIONS_DIR + "s_" + cName + "_" + sName + ".sps");
-		if(cuboidPoints == null && rawPoints != null)
-		{
-			cuboidPoints = new Location[2];
-			for(int i = 0; i < cuboidPoints.length; i++)
-				cuboidPoints[i] = new Location(Bukkit.getWorld(worldName), rawPoints[i][0], rawPoints[i][1], rawPoints[i][2]);
-		}
-		if(rawServerLocation != null)
-		{
-			serverPrevLocation = new Location(Bukkit.getWorld(serverLocationWorldName), rawServerLocation[0], rawServerLocation[1], rawServerLocation[2]);
-		}
-	
+//		if(sessionFile == null)
+//			sessionFile = new File(SburbSessionManager.SESSIONS_DIR + "s_" + cName + "_" + sName + ".sps");
+//		if(cuboidPoints == null && rawPoints != null)
+//		{
+//			cuboidPoints = new Location[2];
+//			for(int i = 0; i < cuboidPoints.length; i++)
+//				cuboidPoints[i] = new Location(Bukkit.getWorld(worldName), rawPoints[i][0], rawPoints[i][1], rawPoints[i][2]);
+//		}
+//		if(rawServerLocation != null)
+//		{
+//			serverPrevLocation = new Location(Bukkit.getWorld(serverLocationWorldName), rawServerLocation[0], rawServerLocation[1], rawServerLocation[2]);
+//		}
+//	
 	}
 
 	/**
 	 * Prepares this session for serialization, serializes it, and saves it to the proper file.
 	 * @throws IOException if an IOException occurs
 	 */
-	void saveSession() throws IOException
+	void saveSession() throws IOException //TODO Test this!
     {
-		if(cuboidPoints != null && cuboidPoints[0] != null && cuboidPoints[1] != null)
-		{
-			rawPoints = new int[2][3];
-    		for(int i = 0; i < rawPoints.length; i++)
-    		{
-    			rawPoints[i][0] = cuboidPoints[i].getBlockX();
-    			rawPoints[i][1] = cuboidPoints[i].getBlockY();
-    			rawPoints[i][2] = cuboidPoints[i].getBlockZ();
-    		}
-    		worldName = cuboidPoints[0].getWorld().getName();
-		}
-		if(serverPrevLocation != null)
-		{
-			serverLocationWorldName = serverPrevLocation.getWorld().getName();
-			rawServerLocation = new int[3];
-			rawServerLocation[0] = serverPrevLocation.getBlockX();
-			rawServerLocation[1] = serverPrevLocation.getBlockY();
-			rawServerLocation[2] = serverPrevLocation.getBlockZ();
-		}
+//		if(cuboidPoints != null && cuboidPoints[0] != null && cuboidPoints[1] != null)
+//		{
+//			rawPoints = new int[2][3];
+//    		for(int i = 0; i < rawPoints.length; i++)
+//    		{
+//    			rawPoints[i][0] = cuboidPoints[i].getBlockX();
+//    			rawPoints[i][1] = cuboidPoints[i].getBlockY();
+//    			rawPoints[i][2] = cuboidPoints[i].getBlockZ();
+//    		}
+//    		worldName = cuboidPoints[0].getWorld().getName();
+//		}
+//		if(serverPrevLocation != null)
+//		{
+//			serverLocationWorldName = serverPrevLocation.getWorld().getName();
+//			rawServerLocation = new int[3];
+//			rawServerLocation[0] = serverPrevLocation.getBlockX();
+//			rawServerLocation[1] = serverPrevLocation.getBlockY();
+//			rawServerLocation[2] = serverPrevLocation.getBlockZ();
+//		}
+		File sessionFile = getSessionFile();
     	FileOutputStream out = new FileOutputStream(sessionFile);
-    	byte[] json = new Gson().toJson(this).getBytes(Charset.defaultCharset());
+    	byte[] json = GsonFactory.getGson().toJson(this).getBytes(Charset.defaultCharset());
     	if(json.length > 0)
     	{
         	out.write(json);
@@ -396,8 +392,14 @@ class SburbSession implements Serializable
     	else //Something went wrong with converting to JSON
     		Logger.getLogger("Minecraft").severe(sessionFile.getName() + " could not be saved, an error occured during creation of the file.");
     }
-    
 
+	/**
+     * @return This session's data file.
+     */
+    File getSessionFile()
+    {
+	    return new File(SburbSessionManager.SESSIONS_DIR + "s_" + cName + "_" + sName + ".sps");
+    }
     
     /**
      * Sends a message to the client, with a color/text prefix.
@@ -433,6 +435,7 @@ class SburbSession implements Serializable
      */
     void kill()
     {
+    	File sessionFile = getSessionFile();
     	if(locationChecker != null)
     		locationChecker.cancel();
     	isActive = false;

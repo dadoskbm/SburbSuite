@@ -22,12 +22,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 
+import co.sblock.common.io.GsonFactory;
 import co.sblock.sburbplayers.SburbPlayer;
 import co.sblock.sburbplayers.SburbPlayers;
 
@@ -48,7 +45,7 @@ public final class SburbSessionManager implements Listener
 	public SburbSessionManager() throws IOException
 	{
 		Bukkit.getServer().getPluginManager().registerEvents(this, SburbPlayers.getInstance());
-		Gson gson = new Gson();
+		Gson gson = GsonFactory.getGson();
 		sessions = new HashSet<SburbSession>();
 		clients = new HashMap<String, SburbSession>();
 		servers = new HashMap<String, SburbSession>();
@@ -103,7 +100,7 @@ public final class SburbSessionManager implements Listener
 	/**
 	 * Saves all sessions and performs other cleanup as necessary.
 	 */
-	public void shutdown()
+	public void saveAllSessions()
 	{
 		for(SburbSession session : sessions)
 		{
@@ -150,8 +147,11 @@ public final class SburbSessionManager implements Listener
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event)
     {
-    	if(registry.getPrice(event.getBlock().getType()) < 0)
+    	if(clients.get(event.getPlayer().getName()).isServerInEditMode() && registry.getBuyPrice(event.getBlock().getType()) < 0)
+    	{
     		event.setCancelled(true);
+    		servers.get(event.getPlayer().getName()).adjustGrist(registry.getSellPrice(event.getBlock().getType()));
+    	}
     }
     
     @EventHandler
@@ -163,7 +163,7 @@ public final class SburbSessionManager implements Listener
 		
 		if(serverSession != null && serverSession.isServerInEditMode())
 		{
-			int price = registry.getPrice(eventBlock.getType());
+			int price = registry.getBuyPrice(eventBlock.getType());
 			if(price < 0)
 			{
 				serverSession.sendToClient("You are not allowed to place that item.");
@@ -196,6 +196,7 @@ public final class SburbSessionManager implements Listener
     public void killSession(Player clientPlayerToKill, SburbPlayer caller)
     {
 	    SburbSession sessionToKill = this.clients.get(clientPlayerToKill.getName());
+	    caller.sendMessage("Session with client " + sessionToKill.getClientName() + " and " + sessionToKill.getServerName() + " terminated.");
 	    Logger.getLogger("Sburb").info("ADMIN ACTION: " + caller.getName() + " killed a session (Client: " + sessionToKill.getClientName() + ", Server: " + sessionToKill.getServerName() + ")");
 	    sessions.remove(sessionToKill);
 	    clients.remove(sessionToKill.getClientName());

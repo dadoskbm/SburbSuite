@@ -79,6 +79,17 @@ public class SburbPlayer implements Serializable, ExecutorClass
 			this.sendMessage(ChatColor.RED + "You do not have permission to do that!");
 	}
 	
+	public void saveAllSessions()
+	{
+		if(this.player.hasPermission("sburbplayers.manageSessions"))
+		{
+			SburbPlayers.getInstance().getSessionManager().saveAllSessions();
+			this.sendMessage("All sessions saved.");
+		}
+		else
+			this.sendMessage(ChatColor.RED + "You do not have permission to do that!");
+	}
+	
 	public void setSpecibus(String s)
 	{
 		if (this.abstratus == null || this.abstratus.isEmpty())

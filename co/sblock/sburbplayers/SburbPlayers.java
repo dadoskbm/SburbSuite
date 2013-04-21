@@ -88,7 +88,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			
 			//Saves all Sburb sessions
 			if(sessionManager != null)
-				sessionManager.shutdown();
+				sessionManager.saveAllSessions();
 		}
 		catch(FileNotFoundException e)
 		{
@@ -178,6 +178,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		new ExecutableCommandNode("enter", session, "startSession", ArgumentType.CLIENT_PLAYER, ArgumentType.SERVER_PLAYER);
 		new ExecutableCommandNode("kill", session, "killSession", ArgumentType.CLIENT_PLAYER);
 		new ExecutableCommandNode("tp", session, "teleport");
+		new ExecutableCommandNode("save", session, "saveAllSessions");
 		
 		CommandNode strife = new CommandNode("s", this.root);
 		new ExecutableCommandNode("a", strife, "setSpecibus", ArgumentType.SPECIBUS);
