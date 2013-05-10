@@ -1,7 +1,7 @@
 package co.sblock.common.io;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
@@ -13,6 +13,7 @@ import org.bukkit.material.MaterialData;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -20,9 +21,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
 
 /**
  * This class is used to generate a GsonBuilder that has special handling for specific Bukkit objects.
@@ -58,7 +56,6 @@ public final class GsonFactory
         	obj.addProperty("y", loc.getBlockY());
         	obj.addProperty("z", loc.getBlockZ());
         	return obj;
-	        //return new JsonPrimitive(String.format("%s,%d,%d,%d", loc.getWorld().getName(),loc.getBlockX(),loc.getBlockY(),loc.getBlockZ()));
         }
 		
 		/* (non-Javadoc)
@@ -73,13 +70,6 @@ public final class GsonFactory
         		return new Location(world, obj.get("x").getAsInt(), obj.get("y").getAsInt(), obj.get("z").getAsInt());
         	else
         		throw new IllegalArgumentException("World " + obj.get("world").getAsString() + " does not exist.");
-        		
-//	        String[] raw = element.getAsString().split(",");
-//	        World world = Bukkit.getWorld(raw[0]);
-//	        if(world != null)
-//	        	return new Location(world, Integer.parseInt(raw[1]), Integer.parseInt(raw[2]), Integer.parseInt(raw[3]));
-//	        else
-//	        	throw new IllegalArgumentException("World " + raw[0] + " does not exist.");
 	        
         }
 		
@@ -88,6 +78,16 @@ public final class GsonFactory
 	private static class ItemStackTypeAdapter implements JsonSerializer<ItemStack>, JsonDeserializer<ItemStack>
 	{
 
+		private class SimpleEnchantment
+		{
+			int id, level;
+			
+			SimpleEnchantment(int id, int level)
+			{
+				this.id = id;
+				this.level = level;
+			}
+		}
 		/* (non-Javadoc)
          * @see com.google.gson.JsonSerializer#serialize(java.lang.Object, java.lang.reflect.Type, com.google.gson.JsonSerializationContext)
          */
@@ -99,7 +99,14 @@ public final class GsonFactory
 	        obj.addProperty("amount", item.getAmount());
 	        obj.addProperty("durability", item.getDurability());
 	        obj.addProperty("data", item.getData().getData());
-	        obj.add("enchantments", context.serialize(item.getEnchantments()));
+	        
+	        JsonArray enchantments = new JsonArray();
+	        for(Enchantment ench : item.getEnchantments().keySet())
+	        {
+	        	enchantments.add(context.serialize(new SimpleEnchantment(ench.getId(), item.getEnchantments().get(ench))));
+	        }
+	        
+	        obj.add("enchantments", enchantments);
 
 	        return obj;
         }
@@ -107,14 +114,20 @@ public final class GsonFactory
 		/* (non-Javadoc)
          * @see com.google.gson.JsonDeserializer#deserialize(com.google.gson.JsonElement, java.lang.reflect.Type, com.google.gson.JsonDeserializationContext)
          */
-        @SuppressWarnings("unchecked")
         @Override
         public ItemStack deserialize(JsonElement element, Type type, JsonDeserializationContext context) throws JsonParseException
         {
 	        JsonObject obj = element.getAsJsonObject();
 	        ItemStack item = new ItemStack(obj.get("id").getAsInt(), obj.get("amount").getAsInt(), obj.get("durability").getAsShort());
 	        item.setData(new MaterialData(item.getType(), obj.get("data").getAsByte()));
-	        item.addEnchantments((Map<Enchantment, Integer>)context.deserialize(obj.get("enchantments"), Map.class));
+	        Map<Enchantment, Integer> enchantments = new HashMap<Enchantment, Integer>();
+	        JsonArray arr = obj.get("enchantments").getAsJsonArray();
+	        for(JsonElement elem : arr)
+	        {
+	        	SimpleEnchantment enchant = context.deserialize(elem, SimpleEnchantment.class);
+	        	enchantments.put(Enchantment.getById(enchant.id), enchant.level);
+	        }
+	        item.addEnchantments(enchantments);
 	        return item;
         }
 		

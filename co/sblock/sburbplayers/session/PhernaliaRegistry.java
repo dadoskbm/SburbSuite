@@ -29,9 +29,7 @@ import co.sblock.sburbplayers.SburbPlayers;
  */
 public class PhernaliaRegistry
 {
-	/**
-     * 
-     */
+
 	private Map<String, Integer> buyPrice, sellPrice;
 	private static final File REG_FILE = new File(SburbPlayers.PLUGIN_DIR + "phernalia_registry.txt");
 	private static final String ITEM = "item.", MACHINE = "machine.";
@@ -73,7 +71,7 @@ public class PhernaliaRegistry
 					}
 					catch(RuntimeException e)
 					{
-						SburbPlayers.getInstance().getLogger().warning("Phernalia registry: Syntax error on line '" + line + "', skipping line.");
+						SburbPlayers.getInstance().getLogger().warning("Phernalia Registry: Syntax error on line '" + line + "', skipping line.");
 						continue;
 					}
 				}
@@ -82,6 +80,8 @@ public class PhernaliaRegistry
 			{
 				SburbPlayers.getInstance().getLogger().severe("Failed to load Phernalia Registry file, creating a default.");
 				this.useDefault();
+				
+				
 			}
 			finally
 			{
@@ -220,7 +220,6 @@ public class PhernaliaRegistry
      */
     public ItemStack[] getAvailableItems()
     {
-    	Class type = Void.TYPE;
     	Set<String> keys = buyPrice.keySet();
     	List<ItemStack> items = new ArrayList<ItemStack>();
     	for(String key : keys)

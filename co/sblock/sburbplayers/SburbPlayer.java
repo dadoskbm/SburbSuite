@@ -88,6 +88,7 @@ public class SburbPlayer implements Serializable, ExecutorClass
 		}
 		else
 			this.sendMessage(ChatColor.RED + "You do not have permission to do that!");
+
 	}
 	
 	public void setSpecibus(String s)

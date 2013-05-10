@@ -14,6 +14,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -68,6 +69,7 @@ class SburbSession implements Serializable
     private String cName, sName;
     //private transient SburbPlayer client, server;
     private Location[] cuboidPoints;
+    private ItemStack[] serverInventory, serverArmor;
     private int grist;
     private int NDI; //Number of Dubious Importance
     private transient BukkitTask locationChecker;
@@ -107,9 +109,6 @@ class SburbSession implements Serializable
     	}
     	saveSession();
     }
-    
-    @SuppressWarnings("unused")
-    private SburbSession() {}
     
     /**
      * Starts the Sburb session. At this point, the client will set house boundaries, and 
@@ -157,6 +156,7 @@ class SburbSession implements Serializable
     			sendToClient("Ground floor set to " + groundFloorLevel);
     			sendToClient("Locations: (" + SburbPlayers.lts(cuboidPoints[0]) + ") and (" + SburbPlayers.lts(cuboidPoints[1]) + ")");
     			sendToClient("Total area: " + this.getTotalArea());
+    			sendToServer("Your client has finished. Use " + ChatColor.GREEN + "/sp session tp" + STD_COLOR + "to go to your client's house.");
     			markingMode = false;
     		}
     		return true;
@@ -188,6 +188,7 @@ class SburbSession implements Serializable
      * house's boundaries. However, the server is not permitted to walk out, and must teleport out in
      * order to resume normal gameplay
      */
+    //TODO Look up LimitedCreative - Might help manage inventories.
     void teleportIn()
     {
     	Player player = Bukkit.getPlayer(sName);
@@ -195,9 +196,26 @@ class SburbSession implements Serializable
     	serverPrevLocation = player.getLocation();
     	if(teleportLocation != null)
     	{
+    		/*get(Armor)Contents returns CraftItemStack, which subclasses ItemStack but cannot be saved to JSON. The following code converts the
+    		 *given CraftItemStacks to Bukkit ItemStacks. */
+    		ItemStack[] serverInventory = player.getInventory().getContents();
+    		ItemStack[] serverArmor = player.getInventory().getArmorContents();
+    		this.serverInventory = new ItemStack[serverInventory.length];
+    		this.serverArmor = new ItemStack[serverArmor.length];
+    		for(int i = 0; i < serverInventory.length; i++)
+    		{
+    			this.serverInventory[i] = serverInventory[i] != null ? new ItemStack(serverInventory[i]) : null;
+    		}
+    		for(int i = 0; i < serverArmor.length; i++)
+    		{
+    			this.serverArmor[i] = serverArmor[i] != null ? new ItemStack(serverArmor[i]) : null;
+    		}
+    		
+    		player.getInventory().clear();
+    		player.getInventory().setArmorContents(new ItemStack[4]);
     		player.teleport(teleportLocation);
     		this.setServerInEditMode(true);
-    		locationChecker = this.new LocationCheckTask().runTaskTimer(SburbPlayers.getInstance(), SburbPlayers.TICKS_PER_SECOND, SburbPlayers.TICKS_PER_SECOND);
+    		this.locationChecker = this.new LocationCheckTask().runTaskTimer(SburbPlayers.getInstance(), SburbPlayers.TICKS_PER_SECOND, SburbPlayers.TICKS_PER_SECOND);
     		sendToServer("Teleported in");
     		
     	}
@@ -212,6 +230,11 @@ class SburbSession implements Serializable
     void teleportOut()
     {
     	Player player = Bukkit.getPlayer(sName);
+    	player.getInventory().clear();
+    	player.getInventory().setContents(serverInventory);
+    	player.getInventory().setArmorContents(serverArmor);
+    	serverInventory = null;
+    	serverArmor = null;
     	this.setServerInEditMode(false);
     	locationChecker.cancel();
     	locationChecker = null;
@@ -308,7 +331,7 @@ class SburbSession implements Serializable
     		{
     			Location thisLoc = new Location(Bukkit.getPlayer(cName).getWorld(), x + 0.5D, groundFloorLevel + 1, z + 0.5D);
     			if(thisLoc.getBlock().getType() == Material.AIR
-    					&& thisLoc.add(0, 1, 0).getBlock().getType() == Material.AIR)
+    					&& thisLoc.clone().add(0, 1, 0).getBlock().getType() == Material.AIR)
     			{
     				return thisLoc;
     			}
@@ -335,51 +358,11 @@ class SburbSession implements Serializable
 	}
 
 	/**
-	 * This method loads in references to transient class values that could not be saved in a file. It is imperative that this method
-	 * be called right after deserialization.
-	 */
-	void loadSession()
-	{
-//		if(sessionFile == null)
-//			sessionFile = new File(SburbSessionManager.SESSIONS_DIR + "s_" + cName + "_" + sName + ".sps");
-//		if(cuboidPoints == null && rawPoints != null)
-//		{
-//			cuboidPoints = new Location[2];
-//			for(int i = 0; i < cuboidPoints.length; i++)
-//				cuboidPoints[i] = new Location(Bukkit.getWorld(worldName), rawPoints[i][0], rawPoints[i][1], rawPoints[i][2]);
-//		}
-//		if(rawServerLocation != null)
-//		{
-//			serverPrevLocation = new Location(Bukkit.getWorld(serverLocationWorldName), rawServerLocation[0], rawServerLocation[1], rawServerLocation[2]);
-//		}
-//	
-	}
-
-	/**
 	 * Prepares this session for serialization, serializes it, and saves it to the proper file.
 	 * @throws IOException if an IOException occurs
 	 */
-	void saveSession() throws IOException //TODO Test this!
+	void saveSession() throws IOException
     {
-//		if(cuboidPoints != null && cuboidPoints[0] != null && cuboidPoints[1] != null)
-//		{
-//			rawPoints = new int[2][3];
-//    		for(int i = 0; i < rawPoints.length; i++)
-//    		{
-//    			rawPoints[i][0] = cuboidPoints[i].getBlockX();
-//    			rawPoints[i][1] = cuboidPoints[i].getBlockY();
-//    			rawPoints[i][2] = cuboidPoints[i].getBlockZ();
-//    		}
-//    		worldName = cuboidPoints[0].getWorld().getName();
-//		}
-//		if(serverPrevLocation != null)
-//		{
-//			serverLocationWorldName = serverPrevLocation.getWorld().getName();
-//			rawServerLocation = new int[3];
-//			rawServerLocation[0] = serverPrevLocation.getBlockX();
-//			rawServerLocation[1] = serverPrevLocation.getBlockY();
-//			rawServerLocation[2] = serverPrevLocation.getBlockZ();
-//		}
 		File sessionFile = getSessionFile();
     	FileOutputStream out = new FileOutputStream(sessionFile);
     	byte[] json = GsonFactory.getGson().toJson(this).getBytes(Charset.defaultCharset());
@@ -473,5 +456,6 @@ class SburbSession implements Serializable
         }
     	
     }
+
     
 }

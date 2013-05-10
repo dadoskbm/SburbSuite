@@ -70,11 +70,14 @@ public final class SburbSessionManager implements Listener
 				Logger.getLogger("Minecraft").severe("File " + file.getName() + " is corrupt, failed to load session.");
 				continue;
 			}
-			newSession.loadSession();
 			sessions.add(newSession);
 			clients.put(newSession.getClientName(), newSession);
 			servers.put(newSession.getServerName(), newSession);
 		}
+		//If there are any players on, call their sessions' OnPlayerJoin methods. This is used to handle restarts where Bukkit's
+		//OnPlayerJoin method is not called.
+		for(Player pl : Bukkit.getServer().getOnlinePlayers())
+			this.onPlayerJoin(pl);
 	}
 	
 	/**
@@ -114,6 +117,7 @@ public final class SburbSessionManager implements Listener
 			}
 		}
 	}
+	
 
 	/**
 	 * Starts a new session
@@ -225,18 +229,29 @@ public final class SburbSessionManager implements Listener
 	/**
 	 * Called when a player joins the server. When a player joins, if they are a client player currently in edit mode, the location
 	 * checker should be enabled and all necessary powers are given to them.
-	 * @param event
+	 * @param event The event object called on.
 	 */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event)
     {
-	    SburbSession sSession = servers.get(event.getPlayer().getName()),
-	    		     cSession = clients.get(event.getPlayer().getName());
-	    if(sSession != null)
-	    	sSession.onServerPlayerJoin();
-	    if(cSession != null)
-	    	cSession.onClientPlayerJoin();
+	    this.onPlayerJoin(event.getPlayer());
 	    
+    }
+    
+    /**
+	 * Called when a player joins the server. When a player joins, if they are a client player currently in edit mode, the location
+	 * checker should be enabled and all necessary powers are given to them.
+	 * @param player Player that joined.
+	 */
+    private void onPlayerJoin(Player player)
+    {
+    	SburbSession sSession = servers.get(player.getName()),
+   		     cSession = clients.get(player.getName());
+       if(sSession != null)
+       	sSession.onServerPlayerJoin();
+       if(cSession != null)
+       	cSession.onClientPlayerJoin();
+    
     }
 
     

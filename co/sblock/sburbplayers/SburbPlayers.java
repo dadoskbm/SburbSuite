@@ -111,6 +111,12 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	{		
 		instance = this;
 		getServer().getPluginManager().registerEvents(this, this);
+		File dir =  new File(SburbSessionManager.SESSIONS_DIR);
+		if(!dir.exists())
+		{
+			Logger.getLogger("Minecraft").warning("SburbPlayers and/or sessions directory missing, creating directories.");
+			dir.mkdirs();
+		}
 		try
 		{
 			sessionManager = new SburbSessionManager();
@@ -121,12 +127,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 			e.printStackTrace();
 			this.getServer().getPluginManager().disablePlugin(this);
 		}
-		File dir =  new File(SburbSessionManager.SESSIONS_DIR);
-		if(!dir.exists())
-		{
-			Logger.getLogger("Minecraft").warning("SburbPlayers and/or sessions directory missing, creating directories.");
-			dir.mkdirs();
-		}
+
 		try
 		{
 			this.towers = ((HashMap<String, String>) new Yaml().loadAs(new FileReader(PLUGIN_DIR + "towers.yml"), HashMap.class));
@@ -140,10 +141,6 @@ public class SburbPlayers extends JavaPlugin implements Listener
 		catch(IOException e)
 		{
 			Logger.getLogger("Minecraft").warning("Abstrata data file missing!");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
 		}
 		for (Player p : this.getServer().getOnlinePlayers())
 		{
@@ -405,6 +402,7 @@ public class SburbPlayers extends JavaPlugin implements Listener
 	{
 		if (tpacks.containsKey(event.getPlayer().getWorld().getName()))
 		{
+			
 			//event.getPlayer().setTexturePack(this.tpacks.get(event.getPlayer().getWorld().getName()));
 			((CraftPlayer) event.getPlayer()).getHandle().a(this.tpacks.get(event.getPlayer().getWorld().getName()), 16);
 		}
